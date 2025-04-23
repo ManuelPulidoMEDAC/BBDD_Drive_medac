@@ -14,7 +14,7 @@
         >
           Login
         </button>
-        
+
         <!-- Botón para activar la pestaña de Registro -->
         <button
           :class="tabClass('register')"
@@ -39,17 +39,17 @@ import { useRouter } from 'vue-router'
 import LoginForm from '@/components/Auth/LoginForm.vue'
 import RegisterForm from '@/components/Auth/RegisterForm.vue'
 
-const activeTab = ref('login')  // Estado que mantiene la pestaña activa (Login o Registro)
+const activeTab = ref('login') // Estado que mantiene la pestaña activa (Login o Registro)
 
 const activeTabComponent = computed(() =>
   activeTab.value === 'login' ? LoginForm : RegisterForm
-)  // Computed property que cambia el componente mostrado según la pestaña activa
+) // Computed property que cambia el componente mostrado según la pestaña activa
 
-const router = useRouter()  // Instancia del enrutador de Vue para la navegación
+const router = useRouter() // Instancia del enrutador de Vue para la navegación
 
 // Función que maneja el éxito del login y redirige al usuario
 function handleLoginSuccess () {
-  router.push({ name: 'Landing' })  // Redirige al usuario a la página de aterrizaje tras un login exitoso
+  router.push({ name: 'Landing' }) // Redirige al usuario a la página de aterrizaje tras un login exitoso
 }
 
 // Función para aplicar clases dinámicas a los botones de las pestañas

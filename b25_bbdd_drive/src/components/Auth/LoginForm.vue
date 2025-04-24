@@ -6,9 +6,9 @@
   >
     <!-- Campo para el nombre de usuario -->
     <input
-      v-model="username"
+      v-model="email"
       type="text"
-      placeholder="Usuario"
+      placeholder="Correo electrónico"
       class="input"
       required
     >
@@ -34,22 +34,39 @@
 // Importación de Vue y definición de variables reactivas
 import { ref } from 'vue'
 
+// Importamos el cliente de Supabase
+import { supabase } from '@/supabase/supabaseClient'
+
 // Definición del evento que se emitirá cuando el login sea exitoso
 const emit = defineEmits(['login-success'])
 
 // Variables reactivas para almacenar el nombre de usuario y la contraseña
-const username = ref('')
+const email = ref('')
 const password = ref('')
+const errorMsg = ref('')
 
 // Función de inicio de sesión
-function login () {
-  // Compara las credenciales con valores estáticos
-  if (username.value === 'usuario' && password.value === 'contraseña') {
+async function login () {
+  // Parte de codigo para verificar que no se dejan campos vacios
+  if (!email.value || !password.value) {
+    errorMsg.value = 'Rellena los campos'
+    alert(errorMsg.value)
+    return
+  }
+
+  // Se intenta el inicio de sesion con los valores del v-model
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.value,
+    password: password.value
+  })
+
+  if (error) {
+    // En caso de error mostramos los errores
+    errorMsg.value = error.message
+    alert('Credenciales incorrectas')
+  } else {
     // Si las credenciales son correctas, emite un evento de éxito
     emit('login-success')
-  } else {
-    // Si las credenciales son incorrectas, muestra una alerta
-    alert('Credenciales incorrectas')
   }
 }
 </script>

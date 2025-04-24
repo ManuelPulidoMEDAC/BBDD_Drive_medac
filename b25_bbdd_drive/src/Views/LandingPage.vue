@@ -109,6 +109,7 @@
 <script setup>
 // Importación de las funcionalidades necesarias de Vue
 import { ref } from 'vue'
+import supabase from '@/supabase/supabaseClient.js'
 
 // Variables reactivas para almacenar los datos
 const ciclos = ref([]) // Lista de ciclos
@@ -123,40 +124,58 @@ const selectedAsignatura = ref(null)
 
 // Función para cargar los ciclos (Simulación por ahora)
 async function loadCiclos () {
-  ciclos.value = [
-    { id: 1, nombre: 'DAM' },
-    { id: 2, nombre: 'DAW' }
-  ]
+  const { data, error } = await supabase.from('ciclos_formativos').select('*')
+
+  if (error) {
+    console.error(error)
+  } else {
+    ciclos.value = data
+  }
 }
 
 // Función para cargar los cursos en función del ciclo seleccionado
 async function loadCursos () {
   if (!selectedCiclo.value) return
-  cursos.value = selectedCiclo.value === 1
-    ? [{ id: 1, nombre: '1o' }, { id: 2, nombre: '2o' }]
-    : [{ id: 3, nombre: '1o' }, { id: 4, nombre: '2o' }]
+
+  const { data, error } = await supabase.from('cursos').select('*').eq('ciclo_formativo_id', selectedCiclo.value)
+
+  if (error) {
+    console.error(error)
+  } else {
+    cursos.value = data
+  }
 }
 
 // Función para cargar las asignaturas en función del curso seleccionado
 async function loadAsignaturas () {
   if (!selectedCurso.value) return
-  asignaturas.value = selectedCurso.value === 1
-    ? [{ id: 1, nombre: 'Lenguaje de Marcas' }, { id: 2, nombre: 'Programación' }]
-    : [{ id: 3, nombre: 'Bases de Datos' }, { id: 4, nombre: 'Redes' }]
+
+  const { data, error } = await supabase.from('asignaturas').select('*').eq('curso_id', selectedCurso.value)
+
+  if (error) {
+    console.error(error)
+  } else {
+    asignaturas.value = data
+  }
 }
 
 // Función para cargar los recursos en función de la asignatura seleccionada
 async function loadRecursos () {
   if (!selectedAsignatura.value) return
-  recursos.value = [
-    { id: 1, titulo: 'Tutorial de Vue', tipo: 'video', enlace_url: 'https://vuejs.org' },
-    { id: 2, titulo: 'Guía de Git', tipo: 'documento', enlace_url: 'https://git-scm.com' }
-  ]
+
+  const { data, error } = await supabase.from('recursos').select('*').eq('asignatura_id', selectedAsignatura.value)
+
+  if (error) {
+    console.error(error)
+  } else {
+    recursos.value = data
+  }
 }
 
 // Cargar los ciclos al inicializar el componente
 loadCiclos()
 </script>
+
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 

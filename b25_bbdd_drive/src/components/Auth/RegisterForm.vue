@@ -39,9 +39,9 @@
 
 .input {
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 10px;
   padding: 12px;
-  width: 100%;
+  width: 90%;
   font-size: 16px;
   color: #333;
   background-color: #fff;
@@ -49,19 +49,19 @@
 }
 
 .input:focus {
-  border-color: #38a169;
+  border-color: #ff7043;
   outline: none;
 }
 
 .btn-primary {
-  background-color: #38a169;
+  background-color: #ff7043;
   color: white;
   font-weight: bold;
   padding: 12px;
-  border-radius: 4px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
-  width: 100%;
+  width: 95%;
   font-size: 16px;
   transition: background-color 0.3s;
 }

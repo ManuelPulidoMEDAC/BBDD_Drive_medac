@@ -58,6 +58,7 @@ function login () {
 .form-container {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   gap: 16px;
   max-width: 400px;
   margin: 0 auto;
@@ -69,9 +70,9 @@ function login () {
 
 .input {
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 10px;
   padding: 12px;
-  width: 100%;
+  width: 90%;
   font-size: 16px;
   color: #333;
   background-color: #fff;
@@ -81,6 +82,7 @@ function login () {
 .input:focus {
   border-color: #3182ce;
   outline: none;
+  overflow: hidden;
 }
 
 .btn-primary {

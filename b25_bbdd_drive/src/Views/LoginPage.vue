@@ -14,7 +14,7 @@
         >
           Login
         </button>
-        
+
         <!-- Botón para activar la pestaña de Registro -->
         <button
           :class="tabClass('register')"
@@ -39,17 +39,17 @@ import { useRouter } from 'vue-router'
 import LoginForm from '@/components/Auth/LoginForm.vue'
 import RegisterForm from '@/components/Auth/RegisterForm.vue'
 
-const activeTab = ref('login')  // Estado que mantiene la pestaña activa (Login o Registro)
+const activeTab = ref('login') // Estado que mantiene la pestaña activa (Login o Registro)
 
 const activeTabComponent = computed(() =>
   activeTab.value === 'login' ? LoginForm : RegisterForm
-)  // Computed property que cambia el componente mostrado según la pestaña activa
+) // Computed property que cambia el componente mostrado según la pestaña activa
 
-const router = useRouter()  // Instancia del enrutador de Vue para la navegación
+const router = useRouter() // Instancia del enrutador de Vue para la navegación
 
 // Función que maneja el éxito del login y redirige al usuario
 function handleLoginSuccess () {
-  router.push({ name: 'Landing' })  // Redirige al usuario a la página de aterrizaje tras un login exitoso
+  router.push({ name: 'Landing' }) // Redirige al usuario a la página de aterrizaje tras un login exitoso
 }
 
 // Función para aplicar clases dinámicas a los botones de las pestañas
@@ -66,7 +66,7 @@ function tabClass (tab) {
   margin: 0 auto;
   padding: 0 16px;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(135deg, #4b6bfb, #ff7043);
 }
 
 h1 {
@@ -122,7 +122,7 @@ h1 {
   padding: 14px 30px;
   border: none;
   background-color: #e4e7ef;
-  color: var(--dark-text);
+  color: #222;
   font-weight: 600;
   font-size: 16px;
   border-radius: 25px;
@@ -138,7 +138,7 @@ h1 {
 }
 
 .tab-button-active {
-  background-color: var(--primary-color);
+  background-color: #4b6bfb;
   color: white;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
@@ -155,22 +155,22 @@ h1 {
 }
 
 .input:focus {
-  border-color: var(--primary-color);
+  border-color: #4b6bfb;
   outline: none;
   box-shadow: 0 0 12px rgba(75, 107, 251, 0.2);
 }
 
 .btn-primary {
-  background-color: var(--primary-color);
+  background-color: #4b6bfb;
   color: white;
   padding: 14px;
   font-size: 16px;
   font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  width: 100%;
-  transition: all 0.3s ease;
+  width: 90%;
+  transition: all 0.8s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 

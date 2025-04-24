@@ -157,114 +157,153 @@ async function loadRecursos () {
 // Cargar los ciclos al inicializar el componente
 loadCiclos()
 </script>
-
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+  --primary-color: #4F46E5;
+  --secondary-color: #6366F1;
+  --background-blur: rgba(255, 255, 255, 0.6);
+  --border-color: rgba(255, 255, 255, 0.3);
+  --text-color: #1f2937;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
 .container {
+  font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  max-width: 900px;
+  padding: 40px 20px;
+  max-width: 960px;
   margin: 0 auto;
-  background-color: #f7fafc;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f0f4ff, #ffffff);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 h1 {
   font-size: 36px;
-  color: #2d3748;
+  color: var(--primary-color);
   font-weight: 700;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   text-align: center;
-  font-family: 'Roboto', sans-serif;
+  position: relative;
+  z-index: 1;
 }
 
 .selectors {
   width: 100%;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
 }
 
 .dropdown {
-  margin-bottom: 20px;
+  backdrop-filter: blur(8px);
+  background: var(--background-blur);
+  border: 1px solid var(--border-color);
+  padding: 16px;
+  border-radius: 12px;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.dropdown:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
 }
 
 label {
-  font-size: 18px;
-  color: #4a5568;
+  font-size: 16px;
+  color: var(--text-color);
   margin-bottom: 8px;
   font-weight: 600;
   display: block;
-  font-family: 'Roboto', sans-serif;
 }
 
 select {
   width: 100%;
   padding: 14px;
   font-size: 16px;
-  color: #2d3748;
+  color: var(--text-color);
   background-color: #fff;
   border: 2px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: border-color 0.3s, box-shadow 0.3s;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-  font-family: 'Roboto', sans-serif;
 }
 
 select:focus {
-  border-color: #3182ce;
-  box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
   outline: none;
 }
 
 .resources {
-  margin-top: 30px;
+  margin-top: 40px;
   width: 100%;
 }
 
 .resources h2 {
   font-size: 28px;
-  color: #2d3748;
-  margin-bottom: 16px;
-  font-family: 'Roboto', sans-serif;
-  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 24px;
+  font-weight: 700;
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .resources ul {
   list-style-type: none;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
 }
 
 .resources li {
-  background-color: #fff;
-  margin: 12px 0;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s, box-shadow 0.3s;
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(4px);
+  animation: fadeInUp 0.8s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .resources li:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transform: scale(1.03);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
 }
 
 .resources li div {
   font-size: 16px;
-  color: #4a5568;
-  font-family: 'Roboto', sans-serif;
+  color: var(--text-color);
 }
 
 .resources li strong {
   font-weight: 700;
   font-size: 18px;
-  color: #2b6cb0;
+  color: var(--primary-color);
 }
 
 .resources span {
   font-style: italic;
-  color: #718096;
+  color: #6b7280;
   margin-top: 5px;
   display: inline-block;
 }
@@ -273,14 +312,14 @@ select:focus {
   display: inline-block;
   margin-top: 12px;
   font-size: 16px;
-  color: #3182ce;
+  color: var(--secondary-color);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   transition: color 0.3s;
 }
 
 .resources a:hover {
-  color: #2b6cb0;
+  color: var(--primary-color);
   text-decoration: underline;
 }
 </style>

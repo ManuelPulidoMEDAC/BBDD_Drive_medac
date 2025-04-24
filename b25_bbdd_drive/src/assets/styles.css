@@ -1,0 +1,35 @@
+/* Estilos globales */
+:root {
+  --primary-color: #4b6bfb; 
+  --secondary-color: #ff7043;
+  --neutral-color: #f7fafc; 
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7fafc;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .input {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    width: 100%;
+  }
+  
+  .btn-primary {
+    background-color: #3182ce;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  .btn-primary:hover {
+    background-color: #2b6cb0;
+  }
+  

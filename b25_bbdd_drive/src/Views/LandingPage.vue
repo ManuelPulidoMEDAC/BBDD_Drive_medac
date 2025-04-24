@@ -109,7 +109,7 @@
 <script setup>
 // Importación de las funcionalidades necesarias de Vue
 import { ref } from 'vue'
-import supabase from '@/supabase/supabaseClient.js'
+import { supabase } from '@/supabase/supabaseClient.js'
 
 // Variables reactivas para almacenar los datos
 const ciclos = ref([]) // Lista de ciclos

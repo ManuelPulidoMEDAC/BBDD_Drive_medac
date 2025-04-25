@@ -70,7 +70,7 @@ function tabClass (tab) {
 }
 
 h1 {
-  font-size: 48px;
+  font-size: 68px;
   color: white;
   font-family: 'Roboto', sans-serif;
   font-weight: 700;
@@ -97,7 +97,8 @@ h1 {
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
+  height: 300px;
   animation: fadeInUp 0.8s ease-out;
 }
 
@@ -123,7 +124,7 @@ h1 {
   border: none;
   background-color: #e4e7ef;
   color: #222;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
   border-radius: 25px;
   cursor: pointer;
@@ -181,5 +182,23 @@ h1 {
 
 .btn-primary:active {
   transform: translateY(2px);
+}
+
+@media (max-width: 900px){
+  .container {
+    padding: 0 32px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  .card {
+    width: 80%;
+    max-width: 600px;
+  }
+
+  h1 {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
 }
 </style>

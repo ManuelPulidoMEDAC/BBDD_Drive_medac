@@ -63,8 +63,8 @@ const remember = ref(false) // Variable para recordar los credenciales de inicio
 async function login () {
   // Parte del login que permita almacenar credenciales para iniciar sesión
   if (remember.value) {
-    localStorage.setItem('email', this.email)
-    localStorage.setItem('password', this.password)
+    localStorage.setItem('email', email.value)
+    localStorage.setItem('password', password.value)
   } else {
     localStorage.removeItem('email')
     localStorage.removeItem('password')

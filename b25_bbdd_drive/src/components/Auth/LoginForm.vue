@@ -20,6 +20,19 @@
       class="input"
       required
     >
+    <!-- Checkbox para recordar la contraseña y el correo -->
+    <div class="remember">
+      <label class="custom-checkbox">
+        <input
+          id="remember"
+          v-model="remember"
+          type="checkbox"
+        >
+        <span class="checkmark" />
+        Recuerdame en este equipo
+      </label>
+    </div>
+
     <!-- Botón para enviar el formulario -->
     <button
       type="submit"
@@ -31,8 +44,8 @@
 </template>
 
 <script setup>
-// Importación de Vue y definición de variables reactivas
-import { ref } from 'vue'
+// Importación de Vue
+import { ref, onMounted } from 'vue'
 
 // Importamos el cliente de Supabase
 import { supabase } from '@/supabase/supabaseClient'
@@ -43,10 +56,20 @@ const emit = defineEmits(['login-success'])
 // Variables reactivas para almacenar el nombre de usuario y la contraseña
 const email = ref('')
 const password = ref('')
-const errorMsg = ref('')
+const errorMsg = ref('') // Variable para recordar mensaje de inicio de sesion
+const remember = ref(false) // Variable para recordar los credenciales de inicio de sesion
 
 // Función de inicio de sesión
 async function login () {
+  // Parte del login que permita almacenar credenciales para iniciar sesión
+  if (remember.value) {
+    localStorage.setItem('email', this.email)
+    localStorage.setItem('password', this.password)
+  } else {
+    localStorage.removeItem('email')
+    localStorage.removeItem('password')
+  }
+
   // Parte de codigo para verificar que no se dejan campos vacios
   if (!email.value || !password.value) {
     errorMsg.value = 'Rellena los campos'
@@ -68,6 +91,18 @@ async function login () {
     // Si las credenciales son correctas, emite un evento de éxito
     emit('login-success')
   }
+
+  // Bloque que carga los credenciales del localstorage para recordar credenciales
+  onMounted(() => {
+    const savedEmail = localStorage.getItem('email')
+    const savedPassword = localStorage.getItem('password')
+
+    if (savedEmail && savedPassword) {
+      email.value = savedEmail
+      password.value = savedPassword
+      remember.value = true
+    }
+  })
 }
 </script>
 
@@ -115,5 +150,80 @@ async function login () {
 
 .btn-primary:hover {
   background-color: #2b6cb0;
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  user-select: none;
+}
+
+.remember input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #3182ce;
+  cursor: pointer;
+}
+
+.custom-checkbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  user-select: none;
+  color: #333;
+}
+
+.custom-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  background-color: #fff;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.custom-checkbox input:checked~.checkmark {
+  background-color: #3182ce;
+  border-color: #3182ce;
+}
+
+.checkmark::after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 5px;
+  top: 1px;
+  width: 4px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox input:checked~.checkmark::after {
+  display: block;
+}
+
+.custom-checkbox input:checked~.checkmark {
+  background-color: #3182ce;
+  border-color: #3182ce;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 </style>

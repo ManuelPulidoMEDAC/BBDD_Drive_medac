@@ -98,7 +98,8 @@ h1 {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   width: 100%;
   max-width: 480px;
-  height: 300px;
+  min-height: 300px;
+  height: auto;
   animation: fadeInUp 0.8s ease-out;
 }
 

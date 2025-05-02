@@ -1,4 +1,5 @@
 <template>
+  <div class="background">
   <!-- Contenedor principal con el título y los selectores -->
   <div class="container">
     <h1>Selecciona tu ciclo, curso y asignatura</h1>
@@ -104,6 +105,7 @@
       </ul>
     </div>
   </div>
+</div>
 </template>
 
 <script setup>
@@ -186,6 +188,12 @@ loadCiclos()
   --border-color: rgba(255, 255, 255, 0.3);
   --text-color: #1f2937;
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.background {
+  background: linear-gradient(135deg, #4b6bfb, #ff7043);
+  min-height: 100vh;
+  padding: 20px;
 }
 
 .container {

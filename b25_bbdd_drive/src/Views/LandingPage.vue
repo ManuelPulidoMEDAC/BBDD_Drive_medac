@@ -1,4 +1,5 @@
 <template>
+  <div class="background">
   <!-- Contenedor principal con el título y los selectores -->
   <div class="container">
     <h1>Selecciona tu ciclo, curso y asignatura</h1>
@@ -104,6 +105,7 @@
       </ul>
     </div>
   </div>
+</div>
 </template>
 
 <script setup>
@@ -188,6 +190,12 @@ loadCiclos()
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
+.background {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  min-height: 100vh;
+  padding: 20px;
+}
+
 .container {
   font-family: 'Inter', sans-serif;
   display: flex;
@@ -197,7 +205,8 @@ loadCiclos()
   padding: 40px 20px;
   max-width: 960px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #f0f4ff, #ffffff);
+  background-color: #e2e8f0;
+  box-shadow: 12px 12px 12px rgba(0, 0, 0, 0.15);
   border-radius: 16px;
   box-shadow: var(--shadow);
   animation: fadeIn 1s ease;

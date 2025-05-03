@@ -1,117 +1,171 @@
 <template>
   <div class="background">
-  <!-- Contenedor principal con el título y los selectores -->
-  <div class="container">
-    <h1>Selecciona tu ciclo, curso y asignatura</h1>
-
-    <!-- Contenedor de los selectores de ciclo, curso y asignatura -->
-    <div class="selectors">
-      <!-- Selector de ciclo -->
-      <div class="dropdown">
-        <label for="ciclo">Ciclo</label>
-        <select
-          v-model="selectedCiclo"
-          @change="loadCursos"
+    <!-- Contenedor principal con el título y los selectores -->
+    <div class="container">
+      <h1>Selecciona tu ciclo, curso y asignatura</h1>
+      <!-- Menú hamburguesa fijo , ojo no cambia en base al pixelaje -->
+      <div class="menu-container">
+        <div
+          class="burger"
+          @click="toggleMenu"
         >
-          <option
-            value=""
-            disabled
+          ☰
+        </div>
+
+        <transition name="slide">
+          <nav
+            v-if="menuOpen"
+            class="menu"
           >
-            Selecciona un ciclo
-          </option>
-          <option
-            v-for="ciclo in ciclos"
-            :key="ciclo.id"
-            :value="ciclo.id"
+            <div class="user-info">
+              <img
+                :src="userImage"
+                alt="Avatar"
+                class="avatar"
+              >
+              <p class="username">
+                {{ user?.email || 'Usuario' }}
+              </p>
+            </div>
+
+            <ul>
+              <li
+                class="logout"
+                @click="logout"
+              >
+                <span>🔓 Logout</span>
+              </li>
+            </ul>
+          </nav>
+        </transition>
+      </div>
+      <!-- Contenedor de los selectores de ciclo, curso y asignatura -->
+      <div class="selectors">
+        <!-- Selector de ciclo -->
+        <div class="dropdown">
+          <label for="ciclo">Ciclo</label>
+          <select
+            v-model="selectedCiclo"
+            @change="loadCursos"
           >
-            {{ ciclo.nombre }}
-          </option>
-        </select>
+            <option
+              value=""
+              disabled
+            >
+              Selecciona un ciclo
+            </option>
+            <option
+              v-for="ciclo in ciclos"
+              :key="ciclo.id"
+              :value="ciclo.id"
+            >
+              {{ ciclo.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Selector de curso que se muestra solo si hay cursos disponibles -->
+        <div
+          v-if="cursos.length > 0"
+          class="dropdown"
+        >
+          <label for="curso">Curso</label>
+          <select
+            v-model="selectedCurso"
+            @change="loadAsignaturas"
+          >
+            <option
+              value=""
+              disabled
+            >
+              Selecciona un curso
+            </option>
+            <option
+              v-for="curso in cursos"
+              :key="curso.id"
+              :value="curso.id"
+            >
+              {{ curso.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Selector de asignatura que se muestra solo si hay asignaturas disponibles -->
+        <div
+          v-if="asignaturas.length > 0"
+          class="dropdown"
+        >
+          <label for="asignatura">Asignatura</label>
+          <select
+            v-model="selectedAsignatura"
+            @change="loadRecursos"
+          >
+            <option
+              value=""
+              disabled
+            >
+              Selecciona una asignatura
+            </option>
+            <option
+              v-for="asignatura in asignaturas"
+              :key="asignatura.id"
+              :value="asignatura.id"
+            >
+              {{ asignatura.nombre }}
+            </option>
+          </select>
+        </div>
       </div>
 
-      <!-- Selector de curso que se muestra solo si hay cursos disponibles -->
+      <!-- Listado de recursos que se muestra solo si hay recursos disponibles -->
       <div
-        v-if="cursos.length > 0"
-        class="dropdown"
+        v-if="recursos.length > 0"
+        class="resources"
       >
-        <label for="curso">Curso</label>
-        <select
-          v-model="selectedCurso"
-          @change="loadAsignaturas"
-        >
-          <option
-            value=""
-            disabled
+        <h2>Recursos</h2>
+        <ul>
+          <li
+            v-for="recurso in recursos"
+            :key="recurso.id"
           >
-            Selecciona un curso
-          </option>
-          <option
-            v-for="curso in cursos"
-            :key="curso.id"
-            :value="curso.id"
-          >
-            {{ curso.nombre }}
-          </option>
-        </select>
+            <div>
+              <strong>{{ recurso.titulo }}</strong><br>
+              <span>{{ recurso.tipo }}</span><br>
+              <a
+                :href="recurso.enlace_url"
+                target="_blank"
+              >Ver recurso</a>
+            </div>
+          </li>
+        </ul>
       </div>
-
-      <!-- Selector de asignatura que se muestra solo si hay asignaturas disponibles -->
-      <div
-        v-if="asignaturas.length > 0"
-        class="dropdown"
-      >
-        <label for="asignatura">Asignatura</label>
-        <select
-          v-model="selectedAsignatura"
-          @change="loadRecursos"
-        >
-          <option
-            value=""
-            disabled
-          >
-            Selecciona una asignatura
-          </option>
-          <option
-            v-for="asignatura in asignaturas"
-            :key="asignatura.id"
-            :value="asignatura.id"
-          >
-            {{ asignatura.nombre }}
-          </option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Listado de recursos que se muestra solo si hay recursos disponibles -->
-    <div
-      v-if="recursos.length > 0"
-      class="resources"
-    >
-      <h2>Recursos</h2>
-      <ul>
-        <li
-          v-for="recurso in recursos"
-          :key="recurso.id"
-        >
-          <div>
-            <strong>{{ recurso.titulo }}</strong><br>
-            <span>{{ recurso.tipo }}</span><br>
-            <a
-              :href="recurso.enlace_url"
-              target="_blank"
-            >Ver recurso</a>
-          </div>
-        </li>
-      </ul>
     </div>
   </div>
-</div>
 </template>
 
 <script setup>
 // Importación de las funcionalidades necesarias de Vue
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from '@/supabase/supabaseClient.js'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+// Comprobar si el usuario está autenticado, si no lo está, redirigir a la página de inicio de sesión
+const user = ref(null)
+
+supabase.auth.getUser().then(({ data, error }) => {
+  if (error) {
+    console.error('Error al obtener usuario:', error)
+  } else {
+    user.value = data.user
+  }
+})
+
+// Menu burger
+const menuOpen = ref(false)
+const toggleMenu = () => {
+  menuOpen.value = !menuOpen.value
+}
 
 // Variables reactivas para almacenar los datos
 const ciclos = ref([]) // Lista de ciclos
@@ -176,6 +230,18 @@ async function loadRecursos () {
 
 // Cargar los ciclos al inicializar el componente
 loadCiclos()
+
+// Imagen de perfil aleatoria (usando robohash para generar imágenes , en el futuro se puede cambiar por una imagen de perfil real xD)
+const userImage = computed(() => {
+  const name = user.value?.email || 'User'
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=64`
+})
+// Funcuión para cerrar sesión
+const logout = async () => {
+  await supabase.auth.signOut()
+  menuOpen.value = false
+  router.push('/')
+}
 </script>
 
 <style scoped>
@@ -209,6 +275,7 @@ loadCiclos()
   border-radius: 16px;
   box-shadow: var(--shadow);
   animation: fadeIn 1s ease;
+  transition: transform 0.6s ease;
 }
 
 @keyframes fadeIn {
@@ -349,4 +416,98 @@ select:focus {
   color: var(--primary-color);
   text-decoration: underline;
 }
+
+/*Estilos para el menu burger */
+.menu-container {
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-bottom: 20px;
+  z-index: 999;
+  transition: transform 0.6s ease;
+}
+
+.burger {
+  font-size: 30px;
+  cursor: pointer;
+  user-select: none;
+  background-color: #fff;
+  padding: 10px 15px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  transition: background-color 0.3s;
+  transition: transform 0.6s ease-in-out;
+}
+
+.burger:hover {
+  background-color: var(--primary-color);
+  transform: ease-in-out 0.5s;
+  color: white;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  top: 60px;
+  left: 0;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transform: ease-in-out 0.5s;
+  padding: 20px;
+  min-width: 200px;
+}
+
+.menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu li {
+  margin-bottom: 10px;
+}
+
+.menu a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.menu a:hover {
+  color: var(--primary-color);
+}
+
+/* Transición de aparición */
+.slide-enter-active, .slide-leave-active {
+  transition: all 0.3s ease;
+}
+.slide-enter-from, .slide-leave-to {
+  transform: translateX(-20px);
+  opacity: 0;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.username {
+  font-weight: bold;
+}
+
+.logout {
+  cursor: pointer;
+  color: #c0392b;
+  font-weight: bold;
+}
+
 </style>

@@ -3,19 +3,20 @@
     <!-- Título principal de la página -->
     <h1>Bienvenido</h1>
 
-    <!-- Tarjeta que contiene las pestañas de Login y Registro -->
+    <!-- Tarjeta que contiene las pestañas de Login -->
     <div class="card">
       <div class="tabs">
         <!-- Botón para activar la pestaña de Login -->
+        <!-- Función para refrescar -->
         <button
           :class="tabClass('login')"
           class="tab-button"
-          @click="activeTab = 'login'"
+          @click="handleLoginClick"
         >
           Login
         </button>
-
-        <!-- Botón para activar la pestaña de Registro -->
+        <!-- Botón para activar la pestaña de Registro (comentado temporalmente) -->
+        <!--
         <button
           :class="tabClass('register')"
           class="tab-button"
@@ -23,9 +24,10 @@
         >
           Registro
         </button>
+        -->
       </div>
 
-      <!-- Se muestra el componente correspondiente (Login o Registro) según la pestaña activa -->
+      <!-- Se muestra solo el componente de Login (Registro comentado) -->
       <component
         :is="activeTabComponent"
         @login-success="handleLoginSuccess"
@@ -33,26 +35,30 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+// import RegisterForm from '@/components/Auth/RegisterForm.vue' // Comentado temporalmente
 import LoginForm from '@/components/Auth/LoginForm.vue'
-import RegisterForm from '@/components/Auth/RegisterForm.vue'
-
-const activeTab = ref('login') // Estado que mantiene la pestaña activa (Login o Registro)
-
-const activeTabComponent = computed(() =>
-  activeTab.value === 'login' ? LoginForm : RegisterForm
-) // Computed property que cambia el componente mostrado según la pestaña activa
-
-const router = useRouter() // Instancia del enrutador de Vue para la navegación
-
-// Función que maneja el éxito del login y redirige al usuario
-function handleLoginSuccess () {
-  router.push({ name: 'Landing' }) // Redirige al usuario a la página de aterrizaje tras un login exitoso
+// Funcion para refrescar la página al hacer click en el botón de Login
+function handleLoginClick () {
+  activeTab.value = 'login'
+  window.location.reload()
 }
 
-// Función para aplicar clases dinámicas a los botones de las pestañas
+const activeTab = ref('login') // Estado fijo en login
+
+const activeTabComponent = computed(() =>
+  activeTab.value === 'login' ? LoginForm : null
+) // Solo carga el componente Login
+
+const router = useRouter()
+
+function handleLoginSuccess () {
+  router.push({ name: 'Landing' })
+}
+
 function tabClass (tab) {
   return activeTab.value === tab ? 'tab-button-active' : 'tab-button'
 }

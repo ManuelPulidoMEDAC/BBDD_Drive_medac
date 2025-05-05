@@ -78,10 +78,14 @@ const passwordFieldType = ref('password') // Variable para altener la password
 
 // Función de inicio de sesión
 async function login () {
+  const secret = 'password secreta'
+
   // Parte del login que permita almacenar credenciales para iniciar sesión
   if (remember.value) {
+    const encryptedPassword = await encryptPassword(password.value, secret)
+
     localStorage.setItem('email', email.value)
-    localStorage.setItem('password', password.value)
+    localStorage.setItem('password', encryptedPassword)
   } else {
     localStorage.removeItem('email')
     localStorage.removeItem('password')
@@ -110,13 +114,15 @@ async function login () {
   }
 }
 // Bloque que carga los credenciales del localstorage para recordar credenciales
-onMounted(() => {
+onMounted(async () => {
   const savedEmail = localStorage.getItem('email')
   const savedPassword = localStorage.getItem('password')
+  const secret = 'password secreta'
 
   if (savedEmail && savedPassword) {
+    const decryptedPassword = await decryptPassword(savedPassword, secret)
     email.value = savedEmail
-    password.value = savedPassword
+    password.value = decryptedPassword
     remember.value = true
   }
 })
@@ -134,6 +140,77 @@ function hidePassword () {
 // Funcion para que el icono de la contraseña se alterne
 const passwordIcon = computed(() =>
   passwordFieldType.value === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash')
+
+// Funcion para convertir nuestra string secreta
+async function getKey (secret) {
+  const encoder = new TextEncoder()
+  const keyMaterial = await window.crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveKey']
+  )
+
+  return window.crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: encoder.encode('un_salt_unico'),
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  )
+}
+
+// Funcion para cifrar la contraseña
+async function encryptPassword (password, secret) {
+  const encoder = new TextEncoder()
+  const key = await getKey(secret)
+  const iv = window.crypto.getRandomValues(new Uint8Array(12)) // 12 bytes IV para AES-GCM
+
+  const encrypted = await window.crypto.subtle.encrypt(
+    {
+      name: 'AES-GCM',
+      iv
+    },
+    key,
+    encoder.encode(password)
+  )
+
+  // Guardamos IV + cifrado en base64 para almacenarlo
+  const buffer = new Uint8Array(encrypted)
+  const result = {
+    iv: Array.from(iv),
+    data: Array.from(buffer)
+  }
+  return btoa(JSON.stringify(result)) // Convertir a base64 string para guardar
+}
+
+// Funcion para descifrar la contraseña
+async function decryptPassword (encryptedData, secret) {
+  const decoder = new TextDecoder()
+  const key = await getKey(secret)
+
+  const encryptedObj = JSON.parse(atob(encryptedData))
+  const iv = new Uint8Array(encryptedObj.iv)
+  const data = new Uint8Array(encryptedObj.data)
+
+  const decrypted = await window.crypto.subtle.decrypt(
+    {
+      name: 'AES-GCM',
+      iv
+    },
+    key,
+    data
+  )
+
+  return decoder.decode(decrypted)
+}
+
 </script>
 
 <style scoped>

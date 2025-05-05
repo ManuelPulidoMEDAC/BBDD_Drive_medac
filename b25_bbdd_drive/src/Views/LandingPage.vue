@@ -202,7 +202,12 @@
                   placeholder="usuario@ejemplo.com"
                   required
                 >
-                <button class="addUserBtn" @click="addUser">Agregar Usuario</button>
+                <button
+                  class="addUserBtn"
+                  @click="addUser"
+                >
+                  Agregar Usuario
+                </button>
               </div>
               <div class="form-group">
                 <label for="password">Contraseña Temporal:</label>

@@ -5,21 +5,37 @@
     @submit.prevent="login"
   >
     <!-- Campo para el nombre de usuario -->
-    <input
-      v-model="email"
-      type="text"
-      placeholder="Correo electrónico"
-      class="input"
-      required
-    >
-    <!-- Campo para la contraseña -->
-    <input
-      v-model="password"
-      type="password"
-      placeholder="Contraseña"
-      class="input"
-      required
-    >
+    <div class="password-input-wrapper">
+      <input
+        v-model="email"
+        type="text"
+        placeholder="Correo electrónico"
+        class="input"
+        required
+      >
+    </div>
+
+    <div class="password-input-wrapper">
+      <!-- Campo para la contraseña -->
+      <input
+        v-model="password"
+        :type="passwordFieldType"
+        placeholder="Contraseña"
+        class="input"
+        required
+      >
+
+      <!--Este div actuara para cambiar la visibilidad -->
+      <div
+        class="password-toggle"
+        @mousedown="showPassword"
+        @mouseup="hidePassword"
+        @touchstart="showPassword"
+        @touchend="hidePassword"
+      >
+        <i :class="passwordIcon" /> <!-- Icono para mostrar contraseña -->
+      </div>
+    </div>
     <!-- Checkbox para recordar la contraseña y el correo -->
     <div class="remember">
       <label class="custom-checkbox">
@@ -45,7 +61,7 @@
 
 <script setup>
 // Importación de Vue
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 // Importamos el cliente de Supabase
 import { supabase } from '@/supabase/supabaseClient'
@@ -58,13 +74,18 @@ const email = ref('')
 const password = ref('')
 const errorMsg = ref('') // Variable para recordar mensaje de inicio de sesion
 const remember = ref(false) // Variable para recordar los credenciales de inicio de sesion
+const passwordFieldType = ref('password') // Variable para altener la password
 
 // Función de inicio de sesión
 async function login () {
+  const secret = 'password secreta'
+
   // Parte del login que permita almacenar credenciales para iniciar sesión
   if (remember.value) {
+    const encryptedPassword = await encryptPassword(password.value, secret)
+
     localStorage.setItem('email', email.value)
-    localStorage.setItem('password', password.value)
+    localStorage.setItem('password', encryptedPassword)
   } else {
     localStorage.removeItem('email')
     localStorage.removeItem('password')
@@ -91,19 +112,105 @@ async function login () {
     // Si las credenciales son correctas, emite un evento de éxito
     emit('login-success')
   }
-
-  // Bloque que carga los credenciales del localstorage para recordar credenciales
-  onMounted(() => {
-    const savedEmail = localStorage.getItem('email')
-    const savedPassword = localStorage.getItem('password')
-
-    if (savedEmail && savedPassword) {
-      email.value = savedEmail
-      password.value = savedPassword
-      remember.value = true
-    }
-  })
 }
+// Bloque que carga los credenciales del localstorage para recordar credenciales
+onMounted(async () => {
+  const savedEmail = localStorage.getItem('email')
+  const savedPassword = localStorage.getItem('password')
+  const secret = 'password secreta'
+
+  if (savedEmail && savedPassword) {
+    const decryptedPassword = await decryptPassword(savedPassword, secret)
+    email.value = savedEmail
+    password.value = decryptedPassword
+    remember.value = true
+  }
+})
+
+// Funcion para mostrar contraseña al clickar
+function showPassword () {
+  passwordFieldType.value = 'text'
+}
+
+// Funcion para ocultar la contraseña despues del click
+function hidePassword () {
+  passwordFieldType.value = 'password'
+}
+
+// Funcion para que el icono de la contraseña se alterne
+const passwordIcon = computed(() =>
+  passwordFieldType.value === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash')
+
+// Funcion para convertir nuestra string secreta
+async function getKey (secret) {
+  const encoder = new TextEncoder()
+  const keyMaterial = await window.crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveKey']
+  )
+
+  return window.crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: encoder.encode('un_salt_unico'),
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  )
+}
+
+// Funcion para cifrar la contraseña
+async function encryptPassword (password, secret) {
+  const encoder = new TextEncoder()
+  const key = await getKey(secret)
+  const iv = window.crypto.getRandomValues(new Uint8Array(12)) // 12 bytes IV para AES-GCM
+
+  const encrypted = await window.crypto.subtle.encrypt(
+    {
+      name: 'AES-GCM',
+      iv
+    },
+    key,
+    encoder.encode(password)
+  )
+
+  // Guardamos IV + cifrado en base64 para almacenarlo
+  const buffer = new Uint8Array(encrypted)
+  const result = {
+    iv: Array.from(iv),
+    data: Array.from(buffer)
+  }
+  return btoa(JSON.stringify(result)) // Convertir a base64 string para guardar
+}
+
+// Funcion para descifrar la contraseña
+async function decryptPassword (encryptedData, secret) {
+  const decoder = new TextDecoder()
+  const key = await getKey(secret)
+
+  const encryptedObj = JSON.parse(atob(encryptedData))
+  const iv = new Uint8Array(encryptedObj.iv)
+  const data = new Uint8Array(encryptedObj.data)
+
+  const decrypted = await window.crypto.subtle.decrypt(
+    {
+      name: 'AES-GCM',
+      iv
+    },
+    key,
+    data
+  )
+
+  return decoder.decode(decrypted)
+}
+
 </script>
 
 <style scoped>
@@ -227,5 +334,40 @@ async function login () {
   background-color: #3182ce;
   border-color: #3182ce;
   transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.password-toggle {
+  cursor: pointer;
+  font-size: 24px;
+  margin-top: 5px;
+}
+
+.password-toggle:hover {
+  opacity: 0.7;
+}
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 40px;
+  box-sizing: border-box;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 20px;
+  user-select: none;
+}
+
+.password-toggle:hover {
+  opacity: 0.7;
 }
 </style>

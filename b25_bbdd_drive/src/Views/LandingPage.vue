@@ -202,7 +202,12 @@
                   placeholder="usuario@ejemplo.com"
                   required
                 >
-                <button class="addUserBtn" @click="addUser">Agregar Usuario</button>
+                <button
+                  class="addUserBtn"
+                  @click="addUser"
+                >
+                  Agregar Usuario
+                </button>
               </div>
               <div class="form-group">
                 <label for="password">Contraseña Temporal:</label>
@@ -316,11 +321,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '@/supabase/supabaseClient.js'
+import { supabase, supabaseAdmin } from '@/supabase/supabaseClient.js'
 
 const router = useRouter()
 const user = ref(null)
-const isAdmin = ref(true) // Detecta si el usuario es admin
+const isAdmin = ref(false) // Detecta si el usuario es admin
 const menuOpen = ref(false)
 const adminModalOpen = ref(false) // ✅ AÑADIDO para controlar el modal del panel admin
 
@@ -349,7 +354,20 @@ onMounted(async () => {
     console.error('Error al obtener usuario:', error)
   } else {
     user.value = data.user
-    isAdmin.value = user.value?.email === 'josecarlosoliva01@gmail.com'
+    // Confirmo si el usuario es superadmin desde la base de datos
+    const { data: profile, error: profileError } = await supabase
+      .from('profesores')
+      .select('superadmin')
+      .eq('id', user.value.id)
+      .single()
+
+    console.log('resultado de la consulta: ', profile)
+    // Manejamos los errores de la consulta
+    if (profileError) {
+      console.error('Error al obtener perfil: ', profileError)
+    } else {
+      isAdmin.value = profile.superadmin
+    }
   }
 
   await loadCiclos()
@@ -441,7 +459,7 @@ const handleAddUser = async () => {
 
   try {
     // 1. Crear usuario en Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: newUser.value.email,
       password: newUser.value.password,
       email_confirm: true
@@ -451,7 +469,7 @@ const handleAddUser = async () => {
 
     // 2. Guardar rol en la base de datos
     const { error: dbError } = await supabase
-      .from('profiles')
+      .from('profesores')
       .upsert({
         id: authData.user.id,
         email: newUser.value.email,

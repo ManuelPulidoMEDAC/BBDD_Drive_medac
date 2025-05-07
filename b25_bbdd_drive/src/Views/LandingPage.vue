@@ -187,79 +187,9 @@
             </button>
           </div>
 
-
           <!-- Contenido según pestaña activa -->
           <div class="tab-content">
-          
-
-          <!-- Formulario de Alta -->
-          <div
-            v-if="activeTab === 'addUser'"
-            class="form-container"
-          >
-            <h3>➕ Dar de Alta Usuario</h3>
-            <form @submit.prevent="handleAddUser">
-              <div class="form-group">
-                <label for="email">Email:</label>
-                <input
-                  v-model="newUser.email"
-                  type="email"
-                  placeholder="usuario@ejemplo.com"
-                  required
-                >
-                <button
-                  class="addUserBtn"
-                  @click="addUser"
-                >
-                  Agregar Usuario
-                </button>
-              </div>
-              <div class="form-group">
-                <label for="password">Contraseña Temporal:</label>
-                <input
-                  v-model="newUser.password"
-                  type="password"
-                  placeholder="Mínimo 6 caracteres"
-                  required
-                  minlength="6"
-                >
-                <button
-                  type="button"
-                  class="generate-btn"
-                  @click="generatePassword"
-                >
-                  Generar
-                </button>
-              </div>
-              <div class="form-group">
-                <label for="role">Rol:</label>
-                <select
-                  v-model="newUser.role"
-                  required
-                >
-                  <option value="user">
-                    Usuario Normal
-                  </option>
-                  <option value="admin">
-                    Administrador
-                  </option>
-                  <option value="teacher">
-                    Profesor
-                  </option>
-                </select>
-              </div>
-              <div class="form-actions">
-                <button
-                  type="submit"
-                  class="btn btn-primary"
-                  :disabled="isLoading"
-                >
-                  <span v-if="!isLoading">Crear Usuario</span>
-                  <span v-else>Procesando...</span>
-                </button>
-              </div>
-            </form>
-
+            <!-- Pestaña: Alta de Usuario -->
             <div
               v-if="activeTab === 'addUser'"
               class="form-container"
@@ -656,7 +586,7 @@ const handleAddUser = async () => {
 }
 
 .background {
-  background: linear-gradient(135deg, #4b6bfb, #ff7043);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   min-height: 100vh;
   padding: 20px;
 }
@@ -670,7 +600,8 @@ const handleAddUser = async () => {
   padding: 40px 20px;
   max-width: 960px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #f0f4ff, #ffffff);
+  background-color: #e2e8f0;
+  box-shadow: 12px 12px 12px rgba(0, 0, 0, 0.15);
   border-radius: 16px;
   box-shadow: var(--shadow);
   animation: fadeIn 1s ease;

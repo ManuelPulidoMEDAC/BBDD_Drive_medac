@@ -187,125 +187,206 @@
             </button>
           </div>
 
-          <!-- Formulario de Alta -->
-          <div
-            v-if="activeTab === 'addUser'"
-            class="form-container"
-          >
-            <h3>➕ Dar de Alta Usuario</h3>
-            <form @submit.prevent="handleAddUser">
-              <div class="form-group">
-                <label for="email">Email:</label>
-                <input
-                  v-model="newUser.email"
-                  type="email"
-                  placeholder="usuario@ejemplo.com"
-                  required
-                >
-                <button class="addUserBtn" @click="addUser">Agregar Usuario</button>
-              </div>
-              <div class="form-group">
-                <label for="password">Contraseña Temporal:</label>
-                <input
-                  v-model="newUser.password"
-                  type="password"
-                  placeholder="Mínimo 6 caracteres"
-                  required
-                  minlength="6"
-                >
-                <button
-                  type="button"
-                  class="generate-btn"
-                  @click="generatePassword"
-                >
-                  Generar
-                </button>
-              </div>
-              <div class="form-group">
-                <label for="role">Rol:</label>
-                <select
-                  v-model="newUser.role"
-                  required
-                >
-                  <option value="user">
-                    Usuario Normal
-                  </option>
-                  <option value="admin">
-                    Administrador
-                  </option>
-                  <option value="teacher">
-                    Profesor
-                  </option>
-                </select>
-              </div>
-              <div class="form-actions">
-                <button
-                  type="submit"
-                  class="btn btn-primary"
-                  :disabled="isLoading"
-                >
-                  <span v-if="!isLoading">Crear Usuario</span>
-                  <span v-else>Procesando...</span>
-                </button>
-              </div>
-            </form>
+          <!-- Contenido según pestaña activa -->
+          <div class="tab-content">
+            <!-- Pestaña: Alta de Usuario -->
             <div
-              v-if="feedback.message"
-              class="feedback"
-              :class="feedback.type"
+              v-if="activeTab === 'addUser'"
+              class="form-container"
             >
-              {{ feedback.message }}
-            </div>
-          </div>
+              <h3>➕ Dar de Alta Usuario</h3>
+              <form @submit.prevent="handleAddUser">
+                <!-- Grupo: Email -->
+                <div class="form-group">
+                  <label for="email">Email:</label>
+                  <input
+                    v-model="newUser.email"
+                    type="email"
+                    placeholder="usuario@ejemplo.com"
+                    required
+                  >
+                </div>
 
-          <!-- Acciones adicionales -->
-          <div class="form-actions">
-            <button
-              class="btn btn-success"
-              @click="handleAddUser"
-            >
-              <i class="fas fa-user-plus" /> Dar de alta
-            </button>
-            <button
-              class="btn btn-danger"
-              @click="removeUser"
-            >
-              <i class="fas fa-user-minus" /> Dar de baja
-            </button>
-            <button
-              class="btn btn-secondary"
-              @click="showUserList"
-            >
-              <i class="fas fa-list" /> Listar usuarios
-            </button>
-          </div>
+                <!-- Grupo: DNI -->
+                <div class="form-group">
+                  <label for="dni">DNI:</label>
+                  <input
+                    v-model="newUser.dni"
+                    type="text"
+                    placeholder="12345678A"
+                    required
+                    pattern="[0-9]{8}[A-Za-z]"
+                    title="Formato de DNI: 8 números seguidos de 1 letra"
+                  >
+                </div>
 
-          <!-- Gestión de Recursos -->
-          <div class="modal-section">
-            <h3>📚 Gestión de Recursos</h3>
-            <div class="action-buttons">
-              <button
-                class="btn btn-primary"
-                @click="uploadResource"
+                <!-- Grupo: Contraseña -->
+                <div class="form-group">
+                  <label for="password">Contraseña Temporal:</label>
+                  <input
+                    v-model="newUser.password"
+                    type="password"
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    minlength="6"
+                  >
+                  <button
+                    type="button"
+                    class="generate-btn"
+                    @click="generatePassword"
+                  >
+                    Generar
+                  </button>
+                </div>
+
+                <!-- Grupo: Especialidad -->
+                <div class="form-group">
+                  <label for="specialty">Especialidad:</label>
+                  <select
+                    v-model="newUser.specialty"
+                    required
+                  >
+                    <option value="teacher">
+                      DAW
+                    </option>
+                    <option value="teacher">
+                      DAM
+                    </option>
+                    <option value="teacher">
+                      Marketing
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Grupo: Centro -->
+                <div class="form-group">
+                  <label for="center">Centro:</label>
+                  <select
+                    v-model="newUser.center"
+                    required
+                  >
+                    <option value="">
+                      Seleccione un centro
+                    </option>
+                    <option value="Centro A">
+                      Centro A
+                    </option>
+                    <option value="Centro B">
+                      Centro B
+                    </option>
+                    <option value="Centro C">
+                      Centro C
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Grupo: Rol -->
+                <div class="form-group">
+                  <label for="role">Rol:</label>
+                  <select
+                    v-model="newUser.role"
+                    required
+                  >
+                    <option value="admin">
+                      Administrador
+                    </option>
+                    <option value="teacher">
+                      Profesor
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Grupo: Admin -->
+                <div class="form-group">
+                  <label for="isAdmin">Rol de Administrador:</label>
+                  <select
+                    id="isAdmin"
+                    v-model="newUser.isAdmin"
+                    required
+                  >
+                    <option :value="true">
+                      Administrador (acceso completo)
+                    </option>
+                    <option :value="false">
+                      Usuario normal (acceso limitado)
+                    </option>
+                  </select>
+                </div>
+                <!-- Acciones del formulario -->
+                <div class="form-actions">
+                  <button
+                    type="submit"
+                    class="btn btn-primary"
+                    :disabled="isLoading"
+                  >
+                    <span v-if="!isLoading">Crear Usuario</span>
+                    <span v-else>Procesando...</span>
+                  </button>
+                </div>
+              </form>
+
+              <!-- Feedback del formulario -->
+              <div
+                v-if="feedback.message"
+                class="feedback"
+                :class="feedback.type"
               >
-                <i class="fas fa-upload" /> Subir recurso
-              </button>
-              <button
-                class="btn btn-warning"
-                @click="editResource"
-              >
-                <i class="fas fa-edit" /> Editar recurso
-              </button>
+                {{ feedback.message }}
+              </div>
             </div>
-          </div>
 
-          <!-- Feedback/Status -->
-          <div
-            v-if="adminFeedback"
-            class="feedback"
-            :class="feedbackType"
-          >
-            {{ adminFeedback }}
+            <!-- Pestaña: Gestión -->
+            <div
+              v-if="activeTab === 'manage'"
+              class="management-container"
+            >
+              <!-- Sección: Gestión de Usuarios -->
+              <div class="modal-section">
+                <h3>👥 Gestión de Usuarios</h3>
+                <div class="action-buttons">
+                  <button
+                    class="btn btn-danger"
+                    @click="removeUser"
+                  >
+                    <i class="fas fa-user-minus" /> Dar de baja
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    @click="showUserList"
+                  >
+                    <i class="fas fa-list" /> Listar usuarios
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sección: Gestión de Recursos -->
+              <div class="modal-section">
+                <h3>📚 Gestión de Recursos</h3>
+                <div class="action-buttons">
+                  <button
+                    class="btn btn-primary"
+                    @click="uploadResource"
+                  >
+                    <i class="fas fa-upload" /> Subir recurso
+                  </button>
+                  <button
+                    class="btn btn-warning"
+                    @click="editResource"
+                  >
+                    <i class="fas fa-edit" /> Editar recurso
+                  </button>
+                </div>
+              </div>
+
+              <!-- Feedback de gestión -->
+              <div
+                v-if="adminFeedback"
+                class="feedback"
+                :class="feedbackType"
+              >
+                {{ adminFeedback }}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -316,11 +397,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '@/supabase/supabaseClient.js'
+import { supabase, supabaseAdmin } from '@/supabase/supabaseClient.js'
 
 const router = useRouter()
 const user = ref(null)
-const isAdmin = ref(true) // Detecta si el usuario es admin
+const isAdmin = ref(false) // Detecta si el usuario es admin
 const menuOpen = ref(false)
 const adminModalOpen = ref(false) // ✅ AÑADIDO para controlar el modal del panel admin
 
@@ -330,13 +411,9 @@ const toggleMenu = () => {
 
 const closeAdminModal = () => {
   adminModalOpen.value = false
-  activeTab.value = 'addUser'
+  activeTab.value = 'handleAddUser'
   newUser.value = { email: '', password: '', role: 'user' }
   feedback.value = { message: '', type: '' }
-}
-
-const addUser = () => {
-  console.log('Agregar usuario')
 }
 
 const removeUser = () => {
@@ -349,7 +426,20 @@ onMounted(async () => {
     console.error('Error al obtener usuario:', error)
   } else {
     user.value = data.user
-    isAdmin.value = user.value?.email === 'josecarlosoliva01@gmail.com'
+    // Confirmo si el usuario es superadmin desde la base de datos
+    const { data: profile, error: profileError } = await supabase
+      .from('profesores')
+      .select('superadmin')
+      .eq('id', user.value.id)
+      .single()
+
+    console.log('resultado de la consulta: ', profile)
+    // Manejamos los errores de la consulta
+    if (profileError) {
+      console.error('Error al obtener perfil: ', profileError)
+    } else {
+      isAdmin.value = profile.superadmin
+    }
   }
 
   await loadCiclos()
@@ -414,9 +504,13 @@ const tabs = [
   { id: 'addUser', label: 'Alta Usuario' },
   { id: 'manage', label: 'Gestión' }
 ]
-const newUser = ref({
+const newUser = ref({ // Nuevas lineas para el formulario de alta de usuario
   email: '',
+  dni: '',
   password: '',
+  specialty: '',
+  center: '',
+  isAdmin: false,
   role: 'user'
 })
 const isLoading = ref(false)
@@ -441,7 +535,7 @@ const handleAddUser = async () => {
 
   try {
     // 1. Crear usuario en Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: newUser.value.email,
       password: newUser.value.password,
       email_confirm: true
@@ -451,7 +545,7 @@ const handleAddUser = async () => {
 
     // 2. Guardar rol en la base de datos
     const { error: dbError } = await supabase
-      .from('profiles')
+      .from('profesores')
       .upsert({
         id: authData.user.id,
         email: newUser.value.email,

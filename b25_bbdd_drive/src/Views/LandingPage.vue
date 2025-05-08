@@ -142,32 +142,211 @@
           </select>
         </div>
 
+        <!-- Selector de asignatura MEJORADO -->
         <div
           v-if="asignaturas.length > 0"
           class="dropdown"
         >
           <label for="asignatura">Asignatura</label>
-          <select
-            v-model="selectedAsignatura"
-            @change="loadRecursos"
-          >
-            <option
-              value=""
-              disabled
+          <div class="asignatura-container">
+            <select
+              v-model="selectedAsignatura"
+              @change="loadRecursos"
             >
-              Selecciona una asignatura
-            </option>
-            <option
-              v-for="asignatura in asignaturas"
-              :key="asignatura.id"
-              :value="asignatura.id"
+              <option
+                value=""
+                disabled
+              >
+                Selecciona una asignatura
+              </option>
+              <option
+                v-for="asignatura in asignaturas"
+                :key="asignatura.id"
+                :value="asignatura.id"
+              >
+                {{ asignatura.nombre }}
+              </option>
+            </select>
+            <button
+              v-if="isAdmin"
+              class="add-resource-btn"
+              title="Añadir nuevo recurso"
+              @click="openAddResourceModal"
             >
-              {{ asignatura.nombre }}
-            </option>
-          </select>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line
+                  x1="12"
+                  y1="5"
+                  x2="12"
+                  y2="19"
+                />
+                <line
+                  x1="5"
+                  y1="12"
+                  x2="19"
+                  y2="12"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
+      <!-- Modal "+" para añadir recurso -->
+      <div
+        v-if="showAddResourceModal"
+        class="resource-modal-overlay"
+        @click.self="closeAddResourceModal"
+      >
+        <div class="resource-modal">
+          <div class="modal-header">
+            <h2>Añadir Nuevo Recurso</h2>
+            <button
+              class="close-btn"
+              @click="closeAddResourceModal"
+            >
+              &times;
+            </button>
+          </div>
+
+          <form
+            class="resource-form"
+            @submit.prevent="submitNewResource"
+          >
+            <div class="form-group">
+              <label>Título del Recurso</label>
+              <input
+                v-model="newResource.name"
+                type="text"
+                required
+                placeholder="Titulo del recurso"
+              >
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tipo de Recurso</label>
+                <select
+                  v-model="newResource.type"
+                  required
+                >
+                  <option value="documento">
+                    Documento
+                  </option>
+                  <option value="presentacion">
+                    Presentación
+                  </option>
+                  <option value="video">
+                    Video
+                  </option>
+                  <option value="enlace">
+                    Enlace web
+                  </option>
+                </select>
+              </div>
+
+              <div
+                v-if="newResource.type === 'enlace'"
+                class="form-group"
+              >
+                <label>URL</label>
+                <input
+                  v-model="newResource.url"
+                  type="url"
+                  placeholder="https://ejemplo.com"
+                >
+              </div>
+            </div>
+
+            <div
+              v-if="newResource.type !== 'enlace'"
+              class="form-group"
+            >
+              <label>Archivo</label>
+              <div class="file-upload">
+                <label class="upload-area">
+                  <input
+                    type="file"
+                    :required="newResource.type !== 'enlace'"
+                    @change="handleFileUpload"
+                  >
+                  <span v-if="!newResource.file">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line
+                        x1="12"
+                        y1="3"
+                        x2="12"
+                        y2="15"
+                      />
+                    </svg>
+                    <span>Selecciona un archivo</span>
+                  </span>
+                  <span
+                    v-else
+                    class="file-info"
+                  >
+                    {{ newResource.file.name }}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Descripción (opcional)</label>
+              <textarea
+                v-model="newResource.description"
+                placeholder="Breve descripción del recurso..."
+                rows="3"
+              />
+            </div>
+
+            <div class="form-actions">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                @click="closeAddResourceModal"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                :disabled="isUploading"
+              >
+                <span v-if="!isUploading">Guardar Recurso</span>
+                <span
+                  v-else
+                  class="loading"
+                >
+                  <span class="spinner" /> Subiendo...
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
       <!-- Modal de Panel Administrador -->
       <div
         v-if="adminModalOpen"
@@ -269,33 +448,16 @@
                       Seleccione un centro
                     </option>
                     <option value="Centro A">
-                      Centro A
+                      Malaga
                     </option>
                     <option value="Centro B">
-                      Centro B
+                      Sevilla
                     </option>
                     <option value="Centro C">
-                      Centro C
+                      Alicante
                     </option>
                   </select>
                 </div>
-
-                <!-- Grupo: Rol -->
-                <div class="form-group">
-                  <label for="role">Rol:</label>
-                  <select
-                    v-model="newUser.role"
-                    required
-                  >
-                    <option value="admin">
-                      Administrador
-                    </option>
-                    <option value="teacher">
-                      Profesor
-                    </option>
-                  </select>
-                </div>
-
                 <!-- Grupo: Admin -->
                 <div class="form-group">
                   <label for="isAdmin">Rol de Administrador:</label>
@@ -308,7 +470,7 @@
                       Administrador (acceso completo)
                     </option>
                     <option :value="false">
-                      Usuario normal (acceso limitado)
+                      Profesor (acceso limitado)
                     </option>
                   </select>
                 </div>
@@ -393,68 +555,165 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase, supabaseAdmin } from '@/supabase/supabaseClient.js'
 
 const router = useRouter()
-const user = ref(null)
-const isAdmin = ref(false) // Detecta si el usuario es admin
-const menuOpen = ref(false)
-const adminModalOpen = ref(false) // ✅ AÑADIDO para controlar el modal del panel admin
 
+// Estados de autenticación y usuario
+const user = ref(null)
+const isAdmin = ref(false)
+const menuOpen = ref(false)
+const adminModalOpen = ref(false)
+
+// Estados para gestión de recursos
+const showAddResourceModal = ref(false)
+const isUploading = ref(false)
+const newResource = ref({
+  name: '',
+  type: 'documento',
+  file: null,
+  url: '',
+  description: ''
+})
+
+// Estados para datos académicos
+const ciclos = ref([])
+const cursos = ref([])
+const asignaturas = ref([])
+const recursos = ref([])
+const selectedCiclo = ref(null)
+const selectedCurso = ref(null)
+const selectedAsignatura = ref(null)
+
+// Estados para gestión de usuarios (admin)
+const activeTab = ref('addUser')
+const tabs = [
+  { id: 'addUser', label: 'Alta Usuario' },
+  { id: 'manage', label: 'Gestión' }
+]
+const newUser = ref({
+  email: '',
+  dni: '',
+  password: '',
+  specialty: '',
+  center: '',
+  isAdmin: false,
+  role: 'user'
+})
+const isLoading = ref(false)
+const feedback = ref({ message: '', type: '' })
+
+// Computed properties
+const userImage = computed(() => {
+  const name = user.value?.email || 'User'
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=64`
+})
+
+// Funciones de UI
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
 }
 
 const closeAdminModal = () => {
   adminModalOpen.value = false
-  activeTab.value = 'handleAddUser'
+  activeTab.value = 'addUser'
   newUser.value = { email: '', password: '', role: 'user' }
   feedback.value = { message: '', type: '' }
 }
 
-const removeUser = () => {
-  console.log('Eliminar usuario')
+// Funciones de autenticación
+const logout = async () => {
+  await supabase.auth.signOut()
+  menuOpen.value = false
+  router.push('/')
 }
 
-onMounted(async () => {
-  const { data, error } = await supabase.auth.getUser()
-  if (error) {
-    console.error('Error al obtener usuario:', error)
-  } else {
-    user.value = data.user
-    // Confirmo si el usuario es superadmin desde la base de datos
-    const { data: profile, error: profileError } = await supabase
-      .from('profesores')
-      .select('superadmin')
-      .eq('id', user.value.id)
-      .single()
-
-    console.log('resultado de la consulta: ', profile)
-    // Manejamos los errores de la consulta
-    if (profileError) {
-      console.error('Error al obtener perfil: ', profileError)
-    } else {
-      isAdmin.value = profile.superadmin
-    }
+// Funciones para gestión de recursos
+const openAddResourceModal = () => {
+  if (!selectedAsignatura.value) {
+    alert('Por favor, selecciona una asignatura primero')
+    return
   }
+  showAddResourceModal.value = true
+}
 
-  await loadCiclos()
-})
+const closeAddResourceModal = () => {
+  showAddResourceModal.value = false
+  newResource.value = {
+    name: '',
+    type: 'documento',
+    file: null,
+    url: '',
+    description: ''
+  }
+}
 
-// Ciclos, cursos, asignaturas y recursos
-const ciclos = ref([])
-const cursos = ref([])
-const asignaturas = ref([])
-const recursos = ref([])
+const handleFileUpload = (event) => {
+  newResource.value.file = event.target.files[0]
+}
 
-const selectedCiclo = ref(null)
-const selectedCurso = ref(null)
-const selectedAsignatura = ref(null)
+const submitNewResource = async () => {
+  try {
+    isUploading.value = true
 
+    // Validación
+    if (!newResource.value.name) {
+      throw new Error('El nombre del recurso es obligatorio')
+    }
+
+    if (newResource.value.type === 'enlace' && !newResource.value.url) {
+      throw new Error('La URL es obligatoria para recursos de tipo enlace')
+    }
+
+    if (newResource.value.type !== 'enlace' && !newResource.value.file) {
+      throw new Error('Debes seleccionar un archivo')
+    }
+
+    // Subir a Supabase
+    let filePath = ''
+
+    if (newResource.value.type !== 'enlace') {
+      const fileExt = newResource.value.file.name.split('.').pop()
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+      filePath = `recursos/${selectedAsignatura.value}/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('recursos')
+        .upload(filePath, newResource.value.file)
+
+      if (uploadError) throw uploadError
+    }
+
+    // Guardar metadatos
+    const { error: dbError } = await supabase
+      .from('recursos')
+      .insert([{
+        nombre: newResource.value.name,
+        tipo: newResource.value.type,
+        asignatura_id: selectedAsignatura.value,
+        url: newResource.value.type === 'enlace' ? newResource.value.url : null,
+        path: newResource.value.type !== 'enlace' ? filePath : null,
+        descripcion: newResource.value.description,
+        subido_por: user.value.id
+      }])
+
+    if (dbError) throw dbError
+
+    alert('Recurso añadido correctamente')
+    closeAddResourceModal()
+    loadRecursos()
+  } catch (error) {
+    console.error('Error al subir el recurso:', error)
+    alert(`Error: ${error.message}`)
+  } finally {
+    isUploading.value = false
+  }
+}
+
+// Funciones para carga de datos académicos
 const loadCiclos = async () => {
   const { data, error } = await supabase.from('ciclos_formativos').select('*')
   if (error) console.error(error)
@@ -487,35 +746,7 @@ const loadRecursos = async () => {
   else recursos.value = data
 }
 
-const userImage = computed(() => {
-  const name = user.value?.email || 'User'
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=64`
-})
-
-const logout = async () => {
-  await supabase.auth.signOut()
-  menuOpen.value = false
-  router.push('/')
-}
-
-// Variables para el alta de usuarios
-const activeTab = ref('addUser')
-const tabs = [
-  { id: 'addUser', label: 'Alta Usuario' },
-  { id: 'manage', label: 'Gestión' }
-]
-const newUser = ref({ // Nuevas lineas para el formulario de alta de usuario
-  email: '',
-  dni: '',
-  password: '',
-  specialty: '',
-  center: '',
-  isAdmin: false,
-  role: 'user'
-})
-const isLoading = ref(false)
-const feedback = ref({ message: '', type: '' })
-
+// Funciones para gestión de usuarios (admin)
 const generatePassword = () => {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let password = ''
@@ -571,6 +802,34 @@ const handleAddUser = async () => {
     isLoading.value = false
   }
 }
+
+const removeUser = () => {
+  console.log('Eliminar usuario')
+}
+
+// Inicialización
+onMounted(async () => {
+  const { data, error } = await supabase.auth.getUser()
+  if (error) {
+    console.error('Error al obtener usuario:', error)
+  } else {
+    user.value = data.user
+    // Confirmo si el usuario es superadmin desde la base de datos
+    const { data: profile, error: profileError } = await supabase
+      .from('profesores')
+      .select('superadmin')
+      .eq('id', user.value.id)
+      .single()
+
+    if (profileError) {
+      console.error('Error al obtener perfil: ', profileError)
+    } else {
+      isAdmin.value = profile.superadmin
+    }
+  }
+
+  await loadCiclos()
+})
 </script>
 
 <style scoped>
@@ -1084,4 +1343,241 @@ select:focus {
   color: #b91c1c;
   border: 1px solid #fecaca;
 }
+/* Estilos para el contenedor de asignatura */
+.asignatura-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Estilos para el botón de añadir recurso */
+.add-resource-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-resource-btn:hover {
+  background-color: #45a049;
+  transform: scale(1.1);
+}
+
+/* Estilos mejorados para el botón y modal */
+.asignatura-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-resource-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.add-resource-btn:hover {
+  background: #3e8e41;
+  transform: scale(1.1);
+}
+
+.add-resource-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Estilos del modal mejorado */
+.resource-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.resource-modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6c757d;
+}
+
+.resource-form {
+  padding: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.file-upload {
+  margin-top: 8px;
+}
+
+.upload-area {
+  display: block;
+  border: 2px dashed #ced4da;
+  border-radius: 4px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.upload-area:hover {
+  border-color: var(--primary-color);
+  background: #f8f9fa;
+}
+
+.upload-area svg {
+  margin-bottom: 8px;
+  color: #6c757d;
+}
+
+.upload-area span {
+  display: block;
+  color: #6c757d;
+}
+
+.file-info {
+  color: #495057;
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--secondary-color);
+}
+
+.btn-primary:disabled {
+  background: #a5d6a7;
+  cursor: not-allowed;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 </style>

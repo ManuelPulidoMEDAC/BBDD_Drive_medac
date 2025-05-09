@@ -343,6 +343,13 @@
               <!-- Sección: Gestión de Usuarios -->
               <div class="modal-section">
                 <h3>👥 Gestión de Usuarios</h3>
+                <ul class="userList">
+                  <li v-for="usuario in usuariosList" :key="usuario.id">
+                    <span><strong>Nombre:</strong>{{ usuario.nombre }}</span>
+                    <span><strong>DNI:</strong> {{ usuario.dni }}</span>
+                    <span class="user-email"><strong>Email:</strong>{{ usuario.email }}</span>
+                  </li>
+                </ul>
                 <div class="action-buttons">
                   <button
                     class="btn btn-danger"
@@ -382,7 +389,7 @@
               <div
                 v-if="adminFeedback"
                 class="feedback"
-                :class="feedback"
+                :class="feedbackType"
               >
                 {{ adminFeedback }}
               </div>
@@ -406,6 +413,7 @@ const menuOpen = ref(false)
 const adminModalOpen = ref(false) // ✅ AÑADIDO para controlar el modal del panel admin
 const centros = ref([]) // variable para almacenar los centros de la bbdd
 const asignaturasOpt = ref([])
+const usuariosList = ref([])
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
@@ -559,7 +567,7 @@ const handleAddUser = async () => {
     if (dbError) throw dbError
 
     feedback.value = {
-      message: `✅ Usuario ${newUser.value.email} creado como `,
+      message: `✅ Usuario ${newUser.value.email} creado`,
       type: 'success'
     }
 
@@ -588,6 +596,13 @@ const asignaturasSelect = async () => {
   const { data, error } = await supabase.from('asignaturas').select('*')
   if (error) console.error(error)
   else asignaturasOpt.value = data
+}
+
+// Mostar la lista de usuarios.
+const showUserList = async () => {
+  const { data, error } = await supabase.from('profesores').select('*')
+  if (error) console.error(error)
+  else usuariosList.value = data
 }
 </script>
 
@@ -1006,6 +1021,7 @@ select:focus {
 
 .form-group {
   margin-bottom: 1.2rem;
+  padding-right: 20px;
   position: relative;
 }
 
@@ -1101,5 +1117,27 @@ select:focus {
   background: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
+}
+
+/*Lista de usuarios*/
+.userList{
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(280px, 1fr));
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.userList li {
+  background-color: rgba(255,255,255,0.95);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease,box-shadow 0.3 ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 </style>

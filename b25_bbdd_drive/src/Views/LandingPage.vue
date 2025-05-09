@@ -59,9 +59,9 @@
                 </span>
               </li>
 
-              <!-- ✅ Panel Admin visible si isAdmin es true -->
+              <!-- ✅ Panel Admin visible si superadmin es true -->
               <li
-                v-if="isAdmin"
+                v-if="superadmin"
                 class="admin-panel"
                 @click="adminModalOpen = true"
               >
@@ -375,6 +375,17 @@
             >
               <h3>➕ Dar de Alta Usuario</h3>
               <form @submit.prevent="handleAddUser">
+                <!--Grupo: Nombre -->
+                <div class="form-group">
+                  <label for="nombre">Nombre:</label>
+                  <input
+                    v-model="newUser.nombre"
+                    type="nombre"
+                    placeholder="Inserte su nombre aquí"
+                    required
+                  >
+                </div>
+
                 <!-- Grupo: Email -->
                 <div class="form-group">
                   <label for="email">Email:</label>
@@ -420,50 +431,57 @@
 
                 <!-- Grupo: Especialidad -->
                 <div class="form-group">
-                  <label for="specialty">Especialidad:</label>
+                  <label for="especialidad">Especialidad:</label>
                   <select
-                    v-model="newUser.specialty"
+                    v-model="newUser.especialidad"
                     required
                   >
-                    <option value="teacher">
-                      DAW
+                    <option
+                      value=""
+                      disabled
+                    >
+                      Seleccione una asignatura
                     </option>
-                    <option value="teacher">
-                      DAM
-                    </option>
-                    <option value="teacher">
-                      Marketing
+                    <option
+                      v-for="asignatura in asignaturasOpt"
+                      :key="asignatura.id"
+                      :value="asignatura.nombre"
+                    >
+                      {{ asignatura.nombre }}
                     </option>
                   </select>
                 </div>
 
                 <!-- Grupo: Centro -->
                 <div class="form-group">
-                  <label for="center">Centro:</label>
+                  <label for="centro">Centro:</label>
                   <select
-                    v-model="newUser.center"
+                    v-model="newUser.centro"
                     required
                   >
-                    <option value="">
+                    <option
+                      value=""
+                      disabled
+                    >
                       Seleccione un centro
                     </option>
-                    <option value="Centro A">
-                      Malaga
-                    </option>
-                    <option value="Centro B">
-                      Sevilla
-                    </option>
-                    <option value="Centro C">
-                      Alicante
+
+                    <option
+                      v-for="centro in centros"
+                      :key="centro.id"
+                      :value="centro.id"
+                    >
+                      {{ centro.nombre }}
+
                     </option>
                   </select>
                 </div>
                 <!-- Grupo: Admin -->
                 <div class="form-group">
-                  <label for="isAdmin">Rol de Administrador:</label>
+                  <label for="superadmin">Rol de Administrador:</label>
                   <select
-                    id="isAdmin"
-                    v-model="newUser.isAdmin"
+                    id="superadmin"
+                    v-model="newUser.superadmin"
                     required
                   >
                     <option :value="true">
@@ -505,6 +523,13 @@
               <!-- Sección: Gestión de Usuarios -->
               <div class="modal-section">
                 <h3>👥 Gestión de Usuarios</h3>
+                <ul class="userList">
+                  <li v-for="usuario in usuariosList" :key="usuario.id">
+                    <span><strong>Nombre:</strong>{{ usuario.nombre }}</span>
+                    <span><strong>DNI:</strong> {{ usuario.dni }}</span>
+                    <span class="user-email"><strong>Email:</strong>{{ usuario.email }}</span>
+                  </li>
+                </ul>
                 <div class="action-buttons">
                   <button
                     class="btn btn-danger"
@@ -564,9 +589,12 @@ const router = useRouter()
 
 // Estados de autenticación y usuario
 const user = ref(null)
-const isAdmin = ref(false)
+const superadmin = ref(false) // Detecta si el usuario es admin
 const menuOpen = ref(false)
-const adminModalOpen = ref(false)
+const adminModalOpen = ref(false) // ✅ AÑADIDO para controlar el modal del panel admin
+const centros = ref([]) // variable para almacenar los centros de la bbdd
+const asignaturasOpt = ref([])
+const usuariosList = ref([])
 
 // Estados para gestión de recursos
 const showAddResourceModal = ref(false)
@@ -605,6 +633,7 @@ const newUser = ref({
 })
 const isLoading = ref(false)
 const feedback = ref({ message: '', type: '' })
+
 
 // Computed properties
 const userImage = computed(() => {
@@ -774,24 +803,28 @@ const handleAddUser = async () => {
 
     if (authError) throw authError
 
-    // 2. Guardar rol en la base de datos
+    // 2. Guardar usuario en la base de datos
     const { error: dbError } = await supabase
       .from('profesores')
-      .upsert({
+      .insert({
         id: authData.user.id,
+        nombre: newUser.value.nombre,
         email: newUser.value.email,
-        role: newUser.value.role
+        dni: newUser.value.dni,
+        especialidad: newUser.value.especialidad,
+        profesor_centro: newUser.value.centro,
+        superadmin: newUser.value.superadmin
       })
 
     if (dbError) throw dbError
 
     feedback.value = {
-      message: `✅ Usuario ${newUser.value.email} creado como ${newUser.value.role}`,
+      message: `✅ Usuario ${newUser.value.email} creado`,
       type: 'success'
     }
 
     // Resetear formulario
-    newUser.value = { email: '', password: '', role: 'user' }
+    newUser.value = { nombre: '', email: '', password: '', dni: '', especialidad: '', centro: '', superadmin: false }
   } catch (error) {
     console.error('Error:', error)
     feedback.value = {
@@ -803,6 +836,26 @@ const handleAddUser = async () => {
   }
 }
 
+// Se encarga de cargar los centros desde la base de datos para seleccionar en el formulario.
+const loadCentros = async () => {
+  const { data, error } = await supabase.from('centros').select('*')
+  if (error) console.error(error)
+  else centros.value = data
+}
+
+// Se encarga de cargar las asignaturas desde la bbdd.
+const asignaturasSelect = async () => {
+  const { data, error } = await supabase.from('asignaturas').select('*')
+  if (error) console.error(error)
+  else asignaturasOpt.value = data
+}
+
+// Mostar la lista de usuarios.
+const showUserList = async () => {
+  const { data, error } = await supabase.from('profesores').select('*')
+  if (error) console.error(error)
+  else usuariosList.value = data
+}
 const removeUser = () => {
   console.log('Eliminar usuario')
 }
@@ -829,6 +882,8 @@ onMounted(async () => {
   }
 
   await loadCiclos()
+  await loadCentros()
+  await asignaturasSelect()
 })
 </script>
 
@@ -1247,6 +1302,7 @@ select:focus {
 
 .form-group {
   margin-bottom: 1.2rem;
+  padding-right: 20px;
   position: relative;
 }
 
@@ -1342,6 +1398,28 @@ select:focus {
   background: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
+}
+
+/*Lista de usuarios*/
+.userList{
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(280px, 1fr));
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.userList li {
+  background-color: rgba(255,255,255,0.95);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease,box-shadow 0.3 ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 /* Estilos para el contenedor de asignatura */
 .asignatura-container {

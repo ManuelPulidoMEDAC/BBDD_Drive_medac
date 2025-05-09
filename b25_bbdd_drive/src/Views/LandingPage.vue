@@ -257,14 +257,18 @@
                     v-model="newUser.especialidad"
                     required
                   >
-                    <option value="teacher">
-                      DAW
+                    <option
+                      value=""
+                      disabled
+                    >
+                      Seleccione una asignatura
                     </option>
-                    <option value="teacher">
-                      DAM
-                    </option>
-                    <option value="teacher">
-                      Marketing
+                    <option
+                      v-for="asignatura in asignaturasOpt"
+                      :key="asignatura.id"
+                      :value="asignatura.nombre"
+                    >
+                      {{ asignatura.nombre }}
                     </option>
                   </select>
                 </div>
@@ -378,7 +382,7 @@
               <div
                 v-if="adminFeedback"
                 class="feedback"
-                :class="feedbackType"
+                :class="feedback"
               >
                 {{ adminFeedback }}
               </div>
@@ -401,6 +405,7 @@ const superadmin = ref(false) // Detecta si el usuario es admin
 const menuOpen = ref(false)
 const adminModalOpen = ref(false) // ✅ AÑADIDO para controlar el modal del panel admin
 const centros = ref([]) // variable para almacenar los centros de la bbdd
+const asignaturasOpt = ref([])
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
@@ -430,7 +435,6 @@ onMounted(async () => {
       .eq('id', user.value.id)
       .single()
 
-    console.log('resultado de la consulta: ', profile)
     // Manejamos los errores de la consulta
     if (profileError) console.error('Error al obtener perfil: ', profileError)
     else superadmin.value = profile.superadmin
@@ -438,6 +442,7 @@ onMounted(async () => {
 
   await loadCiclos()
   await loadCentros()
+  await asignaturasSelect()
 })
 
 // Ciclos, cursos, asignaturas y recursos
@@ -550,7 +555,7 @@ const handleAddUser = async () => {
         profesor_centro: newUser.value.centro,
         superadmin: newUser.value.superadmin
       })
-      
+
     if (dbError) throw dbError
 
     feedback.value = {
@@ -576,6 +581,13 @@ const loadCentros = async () => {
   const { data, error } = await supabase.from('centros').select('*')
   if (error) console.error(error)
   else centros.value = data
+}
+
+// Se encarga de cargar las asignaturas desde la bbdd.
+const asignaturasSelect = async () => {
+  const { data, error } = await supabase.from('asignaturas').select('*')
+  if (error) console.error(error)
+  else asignaturasOpt.value = data
 }
 </script>
 

@@ -168,7 +168,7 @@
               </option>
             </select>
             <button
-              v-if="isAdmin"
+              v-if="superadmin"
               class="add-resource-btn"
               title="Añadir nuevo recurso"
               @click="openAddResourceModal"
@@ -472,7 +472,6 @@
                       :value="centro.id"
                     >
                       {{ centro.nombre }}
-
                     </option>
                   </select>
                 </div>
@@ -524,7 +523,10 @@
               <div class="modal-section">
                 <h3>👥 Gestión de Usuarios</h3>
                 <ul class="userList">
-                  <li v-for="usuario in usuariosList" :key="usuario.id">
+                  <li
+                    v-for="usuario in usuariosList"
+                    :key="usuario.id"
+                  >
                     <span><strong>Nombre:</strong>{{ usuario.nombre }}</span>
                     <span><strong>DNI:</strong> {{ usuario.dni }}</span>
                     <span class="user-email"><strong>Email:</strong>{{ usuario.email }}</span>
@@ -623,17 +625,16 @@ const tabs = [
   { id: 'manage', label: 'Gestión' }
 ]
 const newUser = ref({
+  name:'',
   email: '',
   dni: '',
   password: '',
-  specialty: '',
-  center: '',
-  isAdmin: false,
-  role: 'user'
+  especialidad: '',
+  centro: '',
+  superadmin: false,
 })
 const isLoading = ref(false)
 const feedback = ref({ message: '', type: '' })
-
 
 // Computed properties
 const userImage = computed(() => {
@@ -877,7 +878,7 @@ onMounted(async () => {
     if (profileError) {
       console.error('Error al obtener perfil: ', profileError)
     } else {
-      isAdmin.value = profile.superadmin
+      superadmin.value = profile.superadmin
     }
   }
 

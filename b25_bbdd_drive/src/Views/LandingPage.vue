@@ -554,7 +554,7 @@
                 <div class="action-buttons">
                   <button
                     class="btn btn-primary"
-                    @click="uploadResource"
+                    @click="handleFileUpload"
                   >
                     <i class="fas fa-upload" /> Subir recurso
                   </button>
@@ -625,13 +625,13 @@ const tabs = [
   { id: 'manage', label: 'Gestión' }
 ]
 const newUser = ref({
-  name:'',
+  name: '',
   email: '',
   dni: '',
   password: '',
   especialidad: '',
   centro: '',
-  superadmin: false,
+  superadmin: false
 })
 const isLoading = ref(false)
 const feedback = ref({ message: '', type: '' })

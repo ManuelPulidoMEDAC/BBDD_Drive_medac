@@ -550,7 +550,7 @@ const handleAddUser = async () => {
         profesor_centro: newUser.value.centro,
         superadmin: newUser.value.superadmin
       })
-
+      
     if (dbError) throw dbError
 
     feedback.value = {

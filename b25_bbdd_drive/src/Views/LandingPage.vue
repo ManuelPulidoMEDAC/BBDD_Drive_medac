@@ -59,9 +59,9 @@
                 </span>
               </li>
 
-              <!-- ✅ Panel Admin visible si isAdmin es true -->
+              <!-- ✅ Panel Admin visible si superadmin es true -->
               <li
-                v-if="isAdmin"
+                v-if="superadmin"
                 class="admin-panel"
                 @click="adminModalOpen = true"
               >
@@ -196,6 +196,17 @@
             >
               <h3>➕ Dar de Alta Usuario</h3>
               <form @submit.prevent="handleAddUser">
+                <!--Grupo: Nombre -->
+                <div class="form-group">
+                  <label for="nombre">Nombre:</label>
+                  <input
+                    v-model="newUser.nombre"
+                    type="nombre"
+                    placeholder="Inserte su nombre aquí"
+                    required
+                  >
+                </div>
+
                 <!-- Grupo: Email -->
                 <div class="form-group">
                   <label for="email">Email:</label>
@@ -241,9 +252,9 @@
 
                 <!-- Grupo: Especialidad -->
                 <div class="form-group">
-                  <label for="specialty">Especialidad:</label>
+                  <label for="especialidad">Especialidad:</label>
                   <select
-                    v-model="newUser.specialty"
+                    v-model="newUser.especialidad"
                     required
                   >
                     <option value="teacher">
@@ -260,48 +271,33 @@
 
                 <!-- Grupo: Centro -->
                 <div class="form-group">
-                  <label for="center">Centro:</label>
+                  <label for="centro">Centro:</label>
                   <select
-                    v-model="newUser.center"
+                    v-model="newUser.centro"
                     required
                   >
-                    <option value="">
+                    <option
+                      value=""
+                      disabled
+                    >
                       Seleccione un centro
                     </option>
-                    <option value="Centro A">
-                      Centro A
-                    </option>
-                    <option value="Centro B">
-                      Centro B
-                    </option>
-                    <option value="Centro C">
-                      Centro C
-                    </option>
-                  </select>
-                </div>
-
-                <!-- Grupo: Rol -->
-                <div class="form-group">
-                  <label for="role">Rol:</label>
-                  <select
-                    v-model="newUser.role"
-                    required
-                  >
-                    <option value="admin">
-                      Administrador
-                    </option>
-                    <option value="teacher">
-                      Profesor
+                    <option
+                      v-for="centro in centros"
+                      :key="centro.id"
+                      :value="centro.id"
+                    >
+                      {{ centro.nombre }}
                     </option>
                   </select>
                 </div>
 
                 <!-- Grupo: Admin -->
                 <div class="form-group">
-                  <label for="isAdmin">Rol de Administrador:</label>
+                  <label for="superadmin">Rol de Administrador:</label>
                   <select
-                    id="isAdmin"
-                    v-model="newUser.isAdmin"
+                    id="superadmin"
+                    v-model="newUser.superadmin"
                     required
                   >
                     <option :value="true">
@@ -401,9 +397,10 @@ import { supabase, supabaseAdmin } from '@/supabase/supabaseClient.js'
 
 const router = useRouter()
 const user = ref(null)
-const isAdmin = ref(false) // Detecta si el usuario es admin
+const superadmin = ref(false) // Detecta si el usuario es admin
 const menuOpen = ref(false)
 const adminModalOpen = ref(false) // ✅ AÑADIDO para controlar el modal del panel admin
+const centros = ref([]) // variable para almacenar los centros de la bbdd
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
@@ -435,14 +432,12 @@ onMounted(async () => {
 
     console.log('resultado de la consulta: ', profile)
     // Manejamos los errores de la consulta
-    if (profileError) {
-      console.error('Error al obtener perfil: ', profileError)
-    } else {
-      isAdmin.value = profile.superadmin
-    }
+    if (profileError) console.error('Error al obtener perfil: ', profileError)
+    else superadmin.value = profile.superadmin
   }
 
   await loadCiclos()
+  await loadCentros()
 })
 
 // Ciclos, cursos, asignaturas y recursos
@@ -505,13 +500,13 @@ const tabs = [
   { id: 'manage', label: 'Gestión' }
 ]
 const newUser = ref({ // Nuevas lineas para el formulario de alta de usuario
+  nombre: '',
   email: '',
   dni: '',
   password: '',
-  specialty: '',
-  center: '',
-  isAdmin: false,
-  role: 'user'
+  especialidad: '',
+  centro: '',
+  superadmin: false
 })
 const isLoading = ref(false)
 const feedback = ref({ message: '', type: '' })
@@ -543,24 +538,28 @@ const handleAddUser = async () => {
 
     if (authError) throw authError
 
-    // 2. Guardar rol en la base de datos
+    // 2. Guardar usuario en la base de datos
     const { error: dbError } = await supabase
       .from('profesores')
-      .upsert({
+      .insert({
         id: authData.user.id,
+        nombre: newUser.value.nombre,
         email: newUser.value.email,
-        role: newUser.value.role
+        dni: newUser.value.dni,
+        especialidad: newUser.value.especialidad,
+        profesor_centro: newUser.value.centro,
+        superadmin: newUser.value.superadmin
       })
 
     if (dbError) throw dbError
 
     feedback.value = {
-      message: `✅ Usuario ${newUser.value.email} creado como ${newUser.value.role}`,
+      message: `✅ Usuario ${newUser.value.email} creado como `,
       type: 'success'
     }
 
     // Resetear formulario
-    newUser.value = { email: '', password: '', role: 'user' }
+    newUser.value = { nombre: '', email: '', password: '', dni: '', especialidad: '', centro: '', superadmin: false }
   } catch (error) {
     console.error('Error:', error)
     feedback.value = {
@@ -570,6 +569,13 @@ const handleAddUser = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+// Se encarga de cargar los centros desde la base de datos para seleccionar en el formulario.
+const loadCentros = async () => {
+  const { data, error } = await supabase.from('centros').select('*')
+  if (error) console.error(error)
+  else centros.value = data
 }
 </script>
 

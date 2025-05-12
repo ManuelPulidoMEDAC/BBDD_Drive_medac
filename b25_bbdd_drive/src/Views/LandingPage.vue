@@ -219,14 +219,14 @@
               :key="recurso.id"
               class="tarjeta-recurso"
             >
-              <h3>{{ recurso.name }}</h3>
+              <h3>{{ recurso.titulo }}</h3>
               <p>{{ recurso.description || 'Sin descripción' }}</p>
-              <p><strong>Tipo:</strong> {{ recurso.type }}</p>
+              <p><strong>Tipo:</strong> {{ recurso.tipo }}</p>
 
               <div class="recurso-actions">
                 <a
-                  v-if="recurso.type === 'enlace'"
-                  :href="recurso.url"
+                  v-if="recurso.tipo === 'enlace'"
+                  :href="recurso.url_archivo"
                   target="_blank"
                   class="btn-ver"
                 >
@@ -235,7 +235,7 @@
 
                 <a
                   v-else
-                  :href="recurso.url"
+                  :href="recurso.url_archivo"
                   target="_blank"
                   class="btn-descargar"
                 >
@@ -625,7 +625,6 @@ const menuOpen = ref(false)
 const adminModalOpen = ref(false) // ✅ AÑADIDO para controlar el modal del panel admin
 const centros = ref([]) // variable para almacenar los centros de la bbdd
 const asignaturasOpt = ref([])
-const asignaturaSeleccionada = ref(null)
 const usuariosList = ref([])
 
 // Estados para gestión de recursos
@@ -797,15 +796,12 @@ const loadAsignaturas = async () => {
   recursos.value = []
   const { data, error } = await supabase.from('asignaturas').select('*').eq('curso_id', selectedCurso.value)
   if (error) console.error(error)
-  else asignaturas.value = data
+  else {
+    asignaturas.value = data
+    selectedAsignatura.value = data
+  }
 }
 
-// Llama a la función cuando cambia la asignatura seleccionada
-watch(asignaturaSeleccionada, () => {
-  if (asignaturaSeleccionada.value) {
-    loadRecursosList()
-  }
-}, { immediate: true })
 // Funciones para gestión de usuarios (admin)
 const generatePassword = () => {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -867,14 +863,14 @@ const handleAddUser = async () => {
   }
 }
 
-// Se encarga de cargar los centros desde la base de datos para seleccionar en el formulario.
+// Se encarga de cargar los centros desde la base de datos para seleccionar en el formulario de add user.
 const loadCentros = async () => {
   const { data, error } = await supabase.from('centros').select('*')
   if (error) console.error(error)
   else centros.value = data
 }
 
-// Se encarga de cargar las asignaturas desde la bbdd.
+// Se encarga de cargar las asignaturas desde la bbdd en el formulario de add user.
 const asignaturasSelect = async () => {
   const { data, error } = await supabase.from('asignaturas').select('*')
   if (error) console.error(error)
@@ -897,8 +893,7 @@ const loadRecursosList = async () => {
   const { data, error } = await supabase
     .from('recursos')
     .select('*')
-    .eq('asignatura_id', selectedAsignatura.value.id)
-
+    .eq('asignatura_id', selectedAsignatura.value)
   if (error) {
     console.error('Error al cargar recursos:', error)
   } else {

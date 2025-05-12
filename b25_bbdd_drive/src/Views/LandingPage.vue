@@ -203,13 +203,17 @@
             </button>
           </div>
         </div>
-        <!-- Tarjetas de recursos -->
+        <!-- Tarjetas de recursos endpoint -->
         <div
-          v-if="recursosList.length > 0"
+          v-if="selectedAsignatura"
           class="recursos-grid"
         >
           <h2>Recursos disponibles para esta asignatura</h2>
-          <div class="tarjetas-recursos">
+
+          <div
+            v-if="recursosList.length > 0"
+            class="tarjetas-recursos"
+          >
             <div
               v-for="recurso in recursosList"
               :key="recurso.id"
@@ -240,382 +244,367 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Modal "+" para añadir recurso -->
-      <div
-        v-if="showAddResourceModal"
-        class="resource-modal-overlay"
-        @click.self="closeAddResourceModal"
-      >
-        <div class="resource-modal">
-          <div class="modal-header">
-            <h2>Añadir Nuevo Recurso</h2>
-            <button
-              class="close-btn"
-              @click="closeAddResourceModal"
-            >
-              &times;
-            </button>
-          </div>
-          <form
-            class="resource-form"
-            @submit.prevent="submitNewResource"
+          <div
+            v-else
+            class="tarjeta-recurso sin-recursos"
           >
-            <div class="form-group">
-              <label>Título del Recurso</label>
-              <input
-                v-model="newResource.name"
-                type="text"
-                required
-                placeholder="Titulo del recurso"
+            <h3>No hay recursos disponibles</h3>
+            <p>
+              Esta asignatura aún no tiene recursos subidos.<br>
+              Por favor, vuelve a revisar más tarde o contacta con el profesor.
+            </p>
+          </div>
+        </div>
+
+        <!-- Modal "+" para añadir recurso -->
+        <div
+          v-if="showAddResourceModal"
+          class="resource-modal-overlay"
+          @click.self="closeAddResourceModal"
+        >
+          <div class="resource-modal">
+            <div class="modal-header">
+              <h2>Añadir Nuevo Recurso</h2>
+              <button
+                class="close-btn"
+                @click="closeAddResourceModal"
               >
+                &times;
+              </button>
             </div>
 
-            <div class="form-row">
+            <form
+              class="resource-form"
+              @submit.prevent="submitNewResource"
+            >
               <div class="form-group">
-                <label>Tipo de Recurso</label>
-                <select
-                  v-model="newResource.type"
+                <label>Título del Recurso</label>
+                <input
+                  v-model="newResource.name"
+                  type="text"
                   required
+                  placeholder="Titulo del recurso"
                 >
-                  <option value="documento">
-                    Documento
-                  </option>
-                  <option value="presentacion">
-                    Presentación
-                  </option>
-                  <option value="video">
-                    Video
-                  </option>
-                  <option value="enlace">
-                    Enlace web
-                  </option>
-                </select>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Tipo de Recurso</label>
+                  <select
+                    v-model="newResource.type"
+                    required
+                  >
+                    <option value="documento">
+                      Documento
+                    </option>
+                    <option value="presentacion">
+                      Presentación
+                    </option>
+                    <option value="video">
+                      Video
+                    </option>
+                    <option value="enlace">
+                      Enlace web
+                    </option>
+                  </select>
+                </div>
+
+                <div
+                  v-if="newResource.type === 'enlace'"
+                  class="form-group"
+                >
+                  <label>URL</label>
+                  <input
+                    v-model="newResource.url"
+                    type="url"
+                    placeholder="https://ejemplo.com"
+                  >
+                </div>
               </div>
 
               <div
-                v-if="newResource.type === 'enlace'"
+                v-if="newResource.type !== 'enlace'"
                 class="form-group"
               >
-                <label>URL</label>
-                <input
-                  v-model="newResource.url"
-                  type="url"
-                  placeholder="https://ejemplo.com"
-                >
-              </div>
-            </div>
-
-            <div
-              v-if="newResource.type !== 'enlace'"
-              class="form-group"
-            >
-              <label>Archivo</label>
-              <div class="file-upload">
-                <label class="upload-area">
-                  <input
-                    type="file"
-                    :required="newResource.type !== 'enlace'"
-                    @change="handleFileUpload"
-                  >
-                  <span v-if="!newResource.file">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                <label>Archivo</label>
+                <div class="file-upload">
+                  <label class="upload-area">
+                    <input
+                      type="file"
+                      :required="newResource.type !== 'enlace'"
+                      @change="handleFileUpload"
                     >
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="17 8 12 3 7 8" />
-                      <line
-                        x1="12"
-                        y1="3"
-                        x2="12"
-                        y2="15"
-                      />
-                    </svg>
-                    <span>Selecciona un archivo</span>
-                  </span>
+                    <span v-if="!newResource.file">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line
+                          x1="12"
+                          y1="3"
+                          x2="12"
+                          y2="15"
+                        />
+                      </svg>
+                      <span>Selecciona un archivo</span>
+                    </span>
+                    <span
+                      v-else
+                      class="file-info"
+                    >
+                      {{ newResource.file.name }}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Descripción (opcional)</label>
+                <textarea
+                  v-model="newResource.description"
+                  placeholder="Breve descripción del recurso..."
+                  rows="3"
+                />
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  @click="closeAddResourceModal"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  :disabled="isUploading"
+                >
+                  <span v-if="!isUploading">Guardar Recurso</span>
                   <span
                     v-else
-                    class="file-info"
+                    class="loading"
                   >
-                    {{ newResource.file.name }}
+                    <span class="spinner" /> Subiendo...
                   </span>
-                </label>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <!-- Modal de Panel Administrador -->
+        <div
+          v-if="adminModalOpen"
+          class="admin-modal-overlay"
+          @click.self="closeAdminModal"
+        >
+          <div class="admin-modal">
+            <!-- Pestañas -->
+            <div class="tabs">
+              <button
+                v-for="tab in tabs"
+                :key="tab.id"
+                :class="{ 'active': activeTab === tab.id }"
+                @click="activeTab = tab.id"
+              >
+                {{ tab.label }}
+              </button>
+            </div>
+
+            <!-- Contenido según pestaña activa -->
+            <div class="tab-content">
+              <!-- Pestaña: Alta de Usuario -->
+              <div
+                v-if="activeTab === 'addUser'"
+                class="form-container"
+              >
+                <h3>➕ Dar de Alta Usuario</h3>
+                <form @submit.prevent="handleAddUser">
+                  <!-- Grupo: Email -->
+                  <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input
+                      v-model="newUser.email"
+                      type="email"
+                      placeholder="usuario@ejemplo.com"
+                      required
+                    >
+                  </div>
+
+                  <!-- Grupo: DNI -->
+                  <div class="form-group">
+                    <label for="dni">DNI:</label>
+                    <input
+                      v-model="newUser.dni"
+                      type="text"
+                      placeholder="12345678A"
+                      required
+                      pattern="[0-9]{8}[A-Za-z]"
+                      title="Formato de DNI: 8 números seguidos de 1 letra"
+                    >
+                  </div>
+
+                  <!-- Grupo: Contraseña -->
+                  <div class="form-group">
+                    <label for="password">Contraseña Temporal:</label>
+                    <input
+                      v-model="newUser.password"
+                      type="password"
+                      placeholder="Mínimo 6 caracteres"
+                      required
+                      minlength="6"
+                    >
+                    <button
+                      type="button"
+                      class="generate-btn"
+                      @click="generatePassword"
+                    >
+                      Generar
+                    </button>
+                  </div>
+
+                  <!-- Grupo: Especialidad -->
+                  <div class="form-group">
+                    <label for="specialty">Especialidad:</label>
+                    <select
+                      v-model="newUser.specialty"
+                      required
+                    >
+                      <option value="teacher">
+                        DAW
+                      </option>
+                      <option value="teacher">
+                        DAM
+                      </option>
+                      <option value="teacher">
+                        Marketing
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Grupo: Centro -->
+                  <div class="form-group">
+                    <label for="center">Centro:</label>
+                    <select
+                      v-model="newUser.center"
+                      required
+                    >
+                      <option value="">
+                        Seleccione un centro
+                      </option>
+                      <option value="Centro A">
+                        Malaga
+                      </option>
+                      <option value="Centro B">
+                        Sevilla
+                      </option>
+                      <option value="Centro C">
+                        Alicante
+                      </option>
+                    </select>
+                  </div>
+                  <!-- Grupo: Admin -->
+                  <div class="form-group">
+                    <label for="isAdmin">Rol de Administrador:</label>
+                    <select
+                      id="isAdmin"
+                      v-model="newUser.isAdmin"
+                      required
+                    >
+                      <option :value="true">
+                        Administrador (acceso completo)
+                      </option>
+                      <option :value="false">
+                        Profesor (acceso limitado)
+                      </option>
+                    </select>
+                  </div>
+                  <!-- Acciones del formulario -->
+                  <div class="form-actions">
+                    <button
+                      type="submit"
+                      class="btn btn-primary"
+                      :disabled="isLoading"
+                    >
+                      <span v-if="!isLoading">Crear Usuario</span>
+                      <span v-else>Procesando...</span>
+                    </button>
+                  </div>
+                </form>
+
+                <!-- Feedback del formulario -->
+                <div
+                  v-if="feedback.message"
+                  class="feedback"
+                  :class="feedback.type"
+                >
+                  {{ feedback.message }}
+                </div>
+              </div>
+
+              <!-- Pestaña: Gestión -->
+              <div
+                v-if="activeTab === 'manage'"
+                class="management-container"
+              >
+                <!-- Sección: Gestión de Usuarios -->
+                <div class="modal-section">
+                  <h3>👥 Gestión de Usuarios</h3>
+                  <div class="action-buttons">
+                    <button
+                      class="btn btn-danger"
+                      @click="removeUser"
+                    >
+                      <i class="fas fa-user-minus" /> Dar de baja
+                    </button>
+                    <button
+                      class="btn btn-secondary"
+                      @click="showUserList"
+                    >
+                      <i class="fas fa-list" /> Listar usuarios
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Sección: Gestión de Recursos -->
+                <div class="modal-section">
+                  <h3>📚 Gestión de Recursos</h3>
+                  <div class="action-buttons">
+                    <button
+                      class="btn btn-primary"
+                      @click="uploadResource"
+                    >
+                      <i class="fas fa-upload" /> Subir recurso
+                    </button>
+                    <button
+                      class="btn btn-warning"
+                      @click="editResource"
+                    >
+                      <i class="fas fa-edit" /> Editar recurso
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Feedback de gestión -->
+                <div
+                  v-if="adminFeedback"
+                  class="feedback"
+                  :class="feedbackType"
+                >
+                  {{ adminFeedback }}
+                </div>
               </div>
             </div>
-
-            <div class="form-group">
-              <label>Descripción (opcional)</label>
-              <textarea
-                v-model="newResource.description"
-                placeholder="Breve descripción del recurso..."
-                rows="3"
-              />
-            </div>
-
-            <div class="form-actions">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                @click="closeAddResourceModal"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                class="btn btn-primary"
-                :disabled="isUploading"
-              >
-                <span v-if="!isUploading">Guardar Recurso</span>
-                <span
-                  v-else
-                  class="loading"
-                >
-                  <span class="spinner" /> Subiendo...
-                </span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Modal de Panel Administrador -->
-  <div
-    v-if="adminModalOpen"
-    class="admin-modal-overlay"
-    @click.self="closeAdminModal"
-  >
-    <div class="admin-modal">
-      <!-- Pestañas -->
-      <div class="tabs">
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          :class="{ 'active': activeTab === tab.id }"
-          @click="activeTab = tab.id"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
-
-      <!-- Contenido según pestaña activa -->
-      <div class="tab-content">
-        <!-- Pestaña: Alta de Usuario -->
-        <div
-          v-if="activeTab === 'addUser'"
-          class="form-container"
-        >
-          <h3>➕ Dar de Alta Usuario</h3>
-          <form @submit.prevent="handleAddUser">
-            <!--Grupo: Nombre -->
-            <div class="form-group">
-              <label for="nombre">Nombre:</label>
-              <input
-                v-model="newUser.nombre"
-                type="nombre"
-                placeholder="Inserte su nombre aquí"
-                required
-              >
-            </div>
-
-            <!-- Grupo: Email -->
-            <div class="form-group">
-              <label for="email">Email:</label>
-              <input
-                v-model="newUser.email"
-                type="email"
-                placeholder="usuario@ejemplo.com"
-                required
-              >
-            </div>
-
-            <!-- Grupo: DNI -->
-            <div class="form-group">
-              <label for="dni">DNI:</label>
-              <input
-                v-model="newUser.dni"
-                type="text"
-                placeholder="12345678A"
-                required
-                pattern="[0-9]{8}[A-Za-z]"
-                title="Formato de DNI: 8 números seguidos de 1 letra"
-              >
-            </div>
-
-            <!-- Grupo: Contraseña -->
-            <div class="form-group">
-              <label for="password">Contraseña Temporal:</label>
-              <input
-                v-model="newUser.password"
-                type="password"
-                placeholder="Mínimo 6 caracteres"
-                required
-                minlength="6"
-              >
-              <button
-                type="button"
-                class="generate-btn"
-                @click="generatePassword"
-              >
-                Generar
-              </button>
-            </div>
-
-            <!-- Grupo: Especialidad -->
-            <div class="form-group">
-              <label for="especialidad">Especialidad:</label>
-              <select
-                v-model="newUser.especialidad"
-                required
-              >
-                <option
-                  value=""
-                  disabled
-                >
-                  Seleccione una asignatura
-                </option>
-                <option
-                  v-for="asignatura in asignaturasOpt"
-                  :key="asignatura.id"
-                  :value="asignatura.nombre"
-                >
-                  {{ asignatura.nombre }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Grupo: Centro -->
-            <div class="form-group">
-              <label for="centro">Centro:</label>
-              <select
-                v-model="newUser.centro"
-                required
-              >
-                <option
-                  value=""
-                  disabled
-                >
-                  Seleccione un centro
-                </option>
-
-                <option
-                  v-for="centro in centros"
-                  :key="centro.id"
-                  :value="centro.id"
-                >
-                  {{ centro.nombre }}
-                </option>
-              </select>
-            </div>
-            <!-- Grupo: Admin -->
-            <div class="form-group">
-              <label for="superadmin">Rol de Administrador:</label>
-              <select
-                id="superadmin"
-                v-model="newUser.superadmin"
-                required
-              >
-                <option :value="true">
-                  Administrador (acceso completo)
-                </option>
-                <option :value="false">
-                  Profesor (acceso limitado)
-                </option>
-              </select>
-            </div>
-            <!-- Acciones del formulario -->
-            <div class="form-actions">
-              <button
-                type="submit"
-                class="btn btn-primary"
-                :disabled="isLoading"
-              >
-                <span v-if="!isLoading">Crear Usuario</span>
-                <span v-else>Procesando...</span>
-              </button>
-            </div>
-          </form>
-
-          <!-- Feedback del formulario -->
-          <div
-            v-if="feedback.message"
-            class="feedback"
-            :class="feedback.type"
-          >
-            {{ feedback.message }}
-          </div>
-        </div>
-
-        <!-- Pestaña: Gestión -->
-        <div
-          v-if="activeTab === 'manage'"
-          class="management-container"
-        >
-          <!-- Sección: Gestión de Usuarios -->
-          <div class="modal-section">
-            <h3>👥 Gestión de Usuarios</h3>
-            <ul class="userList">
-              <li
-                v-for="usuario in usuariosList"
-                :key="usuario.id"
-              >
-                <span><strong>Nombre:</strong>{{ usuario.nombre }}</span>
-                <span><strong>DNI:</strong> {{ usuario.dni }}</span>
-                <span class="user-email"><strong>Email:</strong>{{ usuario.email }}</span>
-              </li>
-            </ul>
-            <div class="action-buttons">
-              <button
-                class="btn btn-danger"
-                @click="removeUser"
-              >
-                <i class="fas fa-user-minus" /> Dar de baja
-              </button>
-              <button
-                class="btn btn-secondary"
-                @click="showUserList"
-              >
-                <i class="fas fa-list" /> Listar usuarios
-              </button>
-            </div>
-          </div>
-
-          <!-- Sección: Gestión de Recursos -->
-          <div class="modal-section">
-            <h3>📚 Gestión de Recursos</h3>
-            <div class="action-buttons">
-              <button
-                class="btn btn-primary"
-                @click="handleFileUpload"
-              >
-                <i class="fas fa-upload" /> Subir recurso
-              </button>
-              <button
-                class="btn btn-warning"
-                @click="editResource"
-              >
-                <i class="fas fa-edit" /> Editar recurso
-              </button>
-            </div>
-          </div>
-
-          <!-- Feedback de gestión -->
-          <div
-            v-if="adminFeedback"
-            class="feedback"
-            :class="feedbackType"
-          >
-            {{ adminFeedback }}
           </div>
         </div>
       </div>
@@ -638,7 +627,6 @@ const centros = ref([]) // variable para almacenar los centros de la bbdd
 const asignaturasOpt = ref([])
 const asignaturaSeleccionada = ref(null)
 const usuariosList = ref([])
-const recursosList = ref([]) // variable para almacenar los recursos de la bbdd
 
 // Estados para gestión de recursos
 const showAddResourceModal = ref(false)
@@ -659,6 +647,7 @@ const recursos = ref([])
 const selectedCiclo = ref(null)
 const selectedCurso = ref(null)
 const selectedAsignatura = ref(null)
+const recursosList = ref([])
 
 // Estados para gestión de usuarios (admin)
 const activeTab = ref('addUser')
@@ -811,19 +800,6 @@ const loadAsignaturas = async () => {
   else asignaturas.value = data
 }
 
-const loadRecursosList = async () => {
-  const { data, error } = await supabase
-    .from('recursos')
-    .select('*')
-    .eq('asignatura_id', asignaturaSeleccionada.value.id)
-
-  if (error) {
-    console.error('Error al cargar recursos:', error)
-  } else {
-    recursosList.value = data
-  }
-}
-
 // Llama a la función cuando cambia la asignatura seleccionada
 watch(asignaturaSeleccionada, () => {
   if (asignaturaSeleccionada.value) {
@@ -914,7 +890,26 @@ const showUserList = async () => {
 const removeUser = () => {
   console.log('Eliminar usuario')
 }
+// Función para cargar los recursos
+const loadRecursosList = async () => {
+  if (!selectedAsignatura.value) return
 
+  const { data, error } = await supabase
+    .from('recursos')
+    .select('*')
+    .eq('asignatura_id', selectedAsignatura.value.id)
+
+  if (error) {
+    console.error('Error al cargar recursos:', error)
+  } else {
+    recursosList.value = data
+  }
+}
+
+// Llama a la función cada vez que cambie la asignatura seleccionada
+watch(selectedAsignatura, () => {
+  loadRecursosList()
+})
 // Inicialización
 onMounted(async () => {
   const { data, error } = await supabase.auth.getUser()
@@ -934,6 +929,10 @@ onMounted(async () => {
     } else {
       superadmin.value = profile.superadmin
     }
+  }
+  // Funcion para cargar los recursos de la bbdd.
+  if (selectedAsignatura.value) {
+    await loadRecursos()
   }
 
   await loadCiclos()
@@ -1726,43 +1725,13 @@ select:focus {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-.recursos-grid {
-  margin-top: 2rem;
+.sin-recursos {
+  background-color: #f9f9f9;
+  border: 1px dashed #ccc;
+  padding: 2rem;
   text-align: center;
-  cursor: pointer;
-}
-
-.tarjetas-recursos {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  margin-top: 1rem;
-}
-
-.tarjeta-recurso {
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.recurso-actions {
-  margin-top: 1rem;
-}
-
-.btn-ver,
-.btn-descargar {
-  display: inline-block;
-  background-color: #007bff;
-  color: #fff;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  text-decoration: none;
-}
-
-.btn-ver:hover,
-.btn-descargar:hover {
-  background-color: #0056b3;
+  color: #555;
+  font-style: italic;
 }
 
 </style>

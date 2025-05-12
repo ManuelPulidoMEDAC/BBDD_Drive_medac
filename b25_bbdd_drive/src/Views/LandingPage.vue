@@ -59,9 +59,9 @@
                 </span>
               </li>
 
-              <!-- ✅ Panel Admin visible si isAdmin es true -->
+              <!-- ✅ Panel Admin visible si superadmin es true -->
               <li
-                v-if="isAdmin"
+                v-if="superadmin"
                 class="admin-panel"
                 @click="adminModalOpen = true"
               >
@@ -168,7 +168,7 @@
               </option>
             </select>
             <button
-              v-if="isAdmin"
+              v-if="superadmin"
               class="add-resource-btn"
               title="Añadir nuevo recurso"
               @click="openAddResourceModal"
@@ -275,6 +275,7 @@
               class="resource-form"
               @submit.prevent="submitNewResource"
             >
+
               <div class="form-group">
                 <label>Título del Recurso</label>
                 <input
@@ -285,8 +286,10 @@
                 >
               </div>
 
+
               <div class="form-row">
                 <div class="form-group">
+
                   <label>Tipo de Recurso</label>
                   <select
                     v-model="newResource.type"
@@ -300,6 +303,7 @@
                     </option>
                     <option value="video">
                       Video
+
                     </option>
                     <option value="enlace">
                       Enlace web
@@ -365,6 +369,7 @@
                 </div>
               </div>
 
+
               <div class="form-group">
                 <label>Descripción (opcional)</label>
                 <textarea
@@ -391,6 +396,7 @@
                   <span
                     v-else
                     class="loading"
+
                   >
                     <span class="spinner" /> Subiendo...
                   </span>
@@ -617,9 +623,12 @@ const router = useRouter()
 
 // Estados de autenticación y usuario
 const user = ref(null)
-const isAdmin = ref(false)
+const superadmin = ref(false) // Detecta si el usuario es admin
 const menuOpen = ref(false)
-const adminModalOpen = ref(false)
+const adminModalOpen = ref(false) // ✅ AÑADIDO para controlar el modal del panel admin
+const centros = ref([]) // variable para almacenar los centros de la bbdd
+const asignaturasOpt = ref([])
+const usuariosList = ref([])
 
 // Estados para gestión de recursos
 const showAddResourceModal = ref(false)
@@ -649,13 +658,13 @@ const tabs = [
   { id: 'manage', label: 'Gestión' }
 ]
 const newUser = ref({
+  name: '',
   email: '',
   dni: '',
   password: '',
-  specialty: '',
-  center: '',
-  isAdmin: false,
-  role: 'user'
+  especialidad: '',
+  centro: '',
+  superadmin: false
 })
 const isLoading = ref(false)
 const feedback = ref({ message: '', type: '' })
@@ -828,24 +837,28 @@ const handleAddUser = async () => {
 
     if (authError) throw authError
 
-    // 2. Guardar rol en la base de datos
+    // 2. Guardar usuario en la base de datos
     const { error: dbError } = await supabase
       .from('profesores')
-      .upsert({
+      .insert({
         id: authData.user.id,
+        nombre: newUser.value.nombre,
         email: newUser.value.email,
-        role: newUser.value.role
+        dni: newUser.value.dni,
+        especialidad: newUser.value.especialidad,
+        profesor_centro: newUser.value.centro,
+        superadmin: newUser.value.superadmin
       })
 
     if (dbError) throw dbError
 
     feedback.value = {
-      message: `✅ Usuario ${newUser.value.email} creado como ${newUser.value.role}`,
+      message: `✅ Usuario ${newUser.value.email} creado`,
       type: 'success'
     }
 
     // Resetear formulario
-    newUser.value = { email: '', password: '', role: 'user' }
+    newUser.value = { nombre: '', email: '', password: '', dni: '', especialidad: '', centro: '', superadmin: false }
   } catch (error) {
     console.error('Error:', error)
     feedback.value = {
@@ -857,6 +870,26 @@ const handleAddUser = async () => {
   }
 }
 
+// Se encarga de cargar los centros desde la base de datos para seleccionar en el formulario.
+const loadCentros = async () => {
+  const { data, error } = await supabase.from('centros').select('*')
+  if (error) console.error(error)
+  else centros.value = data
+}
+
+// Se encarga de cargar las asignaturas desde la bbdd.
+const asignaturasSelect = async () => {
+  const { data, error } = await supabase.from('asignaturas').select('*')
+  if (error) console.error(error)
+  else asignaturasOpt.value = data
+}
+
+// Mostar la lista de usuarios.
+const showUserList = async () => {
+  const { data, error } = await supabase.from('profesores').select('*')
+  if (error) console.error(error)
+  else usuariosList.value = data
+}
 const removeUser = () => {
   console.log('Eliminar usuario')
 }
@@ -897,7 +930,7 @@ onMounted(async () => {
     if (profileError) {
       console.error('Error al obtener perfil: ', profileError)
     } else {
-      isAdmin.value = profile.superadmin
+      superadmin.value = profile.superadmin
     }
   }
   // Funcion para cargar los recursos de la bbdd.
@@ -906,6 +939,8 @@ onMounted(async () => {
   }
 
   await loadCiclos()
+  await loadCentros()
+  await asignaturasSelect()
 })
 </script>
 
@@ -1324,6 +1359,7 @@ select:focus {
 
 .form-group {
   margin-bottom: 1.2rem;
+  padding-right: 20px;
   position: relative;
 }
 
@@ -1419,6 +1455,28 @@ select:focus {
   background: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
+}
+
+/*Lista de usuarios*/
+.userList{
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(280px, 1fr));
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.userList li {
+  background-color: rgba(255,255,255,0.95);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease,box-shadow 0.3 ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 /* Estilos para el contenedor de asignatura */
 .asignatura-container {
